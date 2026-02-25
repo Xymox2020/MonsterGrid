@@ -22,7 +22,15 @@ public class GridAnimationManager {
      * Animates a character moving from one cell to another.
      */
     public static void animateStationaryToTarget(TextView sourceCell, TextView targetCell, String characterTag, int targetBgColor, AnimationCallback callback) {
-        // Essential: Clear translation and scale before calculating new positions
+        // Essential: Stop any previous animations on these cells and reset their state
+        // to ensure getLocationInWindow returns the base layout position.
+        sourceCell.animate().cancel();
+        sourceCell.setTranslationX(0);
+        sourceCell.setTranslationY(0);
+        sourceCell.setScaleX(1.0f);
+        sourceCell.setScaleY(1.0f);
+
+        targetCell.animate().cancel();
         targetCell.setTranslationX(0);
         targetCell.setTranslationY(0);
         targetCell.setScaleX(1.0f);
@@ -47,16 +55,13 @@ public class GridAnimationManager {
         sourceCell.setText("");
         sourceCell.setBackgroundColor(Color.parseColor(DEFAULT_CELL_COLOR));
 
-        // Bring target to front to prevent "under the grid" look
+        // Bring target to front to ensure it's above other elements during move
         targetCell.bringToFront();
-        if (targetCell.getParent() != null) {
-            ((View)targetCell.getParent()).invalidate();
-        }
 
         targetCell.animate()
                 .translationX(0)
                 .translationY(0)
-                .setDuration(300) // Slightly faster for snappier feel
+                .setDuration(300) 
                 .setInterpolator(new AccelerateDecelerateInterpolator())
                 .setListener(new AnimatorListenerAdapter() {
                     @Override

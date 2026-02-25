@@ -335,16 +335,10 @@ public class MainActivity extends AppCompatActivity {
         int[] next = GameRules.getMonsterMove(m.x, m.y, target.x, target.y);
         
         if (next[0] == target.x && next[1] == target.y) {
+            // Damage immediately, remove attack animation to prevent teleportation issues
             target.hp -= m.damage;
             updateUI();
-            cells[m.x][m.y].animate()
-                    .scaleX(1.4f).scaleY(1.4f)
-                    .setDuration(150)
-                    .setInterpolator(new AnticipateOvershootInterpolator())
-                    .withEndAction(() -> {
-                        cells[m.x][m.y].animate().scaleX(1.0f).scaleY(1.0f).setDuration(100).start();
-                        processMonsterSequence(index + 1);
-                    }).start();
+            processMonsterSequence(index + 1);
         } else if (isEmpty(next[0], next[1])) {
             int oldX = m.x, oldY = m.y;
             m.x = next[0]; m.y = next[1];
