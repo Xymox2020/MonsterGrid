@@ -19,8 +19,9 @@ add_library(monstergrid SHARED
 find_package(game-activity REQUIRED CONFIG)
 
 # Forces the linker to keep the JNI entry point for GameActivity
+# Added -Wl,-z,max-page-size=16384 to support 16 KB page sizes
 set(CMAKE_SHARED_LINKER_FLAGS
-        "${CMAKE_SHARED_LINKER_FLAGS} -u Java_com_google_androidgamesdk_GameActivity_initializeNativeCode")
+        "${CMAKE_SHARED_LINKER_FLAGS} -u Java_com_google_androidgamesdk_GameActivity_initializeNativeCode -Wl,-z,max-page-size=16384")
 
 # Configure libraries CMake uses to link your target library.
 target_link_libraries(monstergrid
