@@ -3,9 +3,11 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#0F0F0F"
-    android:fitsSystemWindows="true">
+    android:fitsSystemWindows="true"
+    android:clipChildren="false"
+    android:clipToPadding="false">
 
-    <!-- Premium Header (Statistics only, no title) -->
+    <!-- Premium Header -->
     <LinearLayout
         android:id="@+id/header"
         android:layout_width="match_parent"
@@ -111,18 +113,24 @@
         android:layout_height="match_parent"
         android:layout_below="@id/header"
         android:layout_above="@id/controls"
-        android:padding="4dp">
+        android:padding="4dp"
+        android:clipChildren="false"
+        android:clipToPadding="false">
 
         <HorizontalScrollView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:scrollbars="none">
+            android:scrollbars="none"
+            android:clipChildren="false"
+            android:clipToPadding="false">
             
             <ScrollView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:scrollbars="none">
+                android:scrollbars="none"
+                android:clipChildren="false"
+                android:clipToPadding="false">
                 
                 <GridLayout
                     android:id="@+id/gameGrid"
@@ -131,7 +139,9 @@
                     android:columnCount="10"
                     android:rowCount="10"
                     android:background="#333333"
-                    android:padding="1dp">
+                    android:padding="1dp"
+                    android:clipChildren="false"
+                    android:clipToPadding="false">
                     <!-- Cells -->
                 </GridLayout>
             </ScrollView>
@@ -209,7 +219,8 @@
         android:id="@+id/effectLayer"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:elevation="20dp"
+        android:elevation="50dp"
+        android:translationZ="50dp"
         android:clickable="false"
         android:focusable="false"/>
 
@@ -220,7 +231,7 @@
         android:layout_height="match_parent"
         android:background="#F2000000"
         android:visibility="gone"
-        android:elevation="30dp"
+        android:elevation="100dp"
         android:clickable="true"
         android:focusable="true">
         

@@ -19,36 +19,48 @@ public class GridAnimationManager {
     private static final String DEFAULT_CELL_COLOR = "#1A1A1A";
 
     /**
-     * Animates a character moving from one cell to another with hardware acceleration.
+     * Animates a character moving from one cell to another.
      */
     public static void animateStationaryToTarget(TextView sourceCell, TextView targetCell, String characterTag, int targetBgColor, AnimationCallback callback) {
-        float startX = sourceCell.getX();
-        float startY = sourceCell.getY();
-        float endX = targetCell.getX();
-        float endY = targetCell.getY();
+        // Essential: Clear translation and scale before calculating new positions
+        targetCell.setTranslationX(0);
+        targetCell.setTranslationY(0);
+        targetCell.setScaleX(1.0f);
+        targetCell.setScaleY(1.0f);
+        
+        int[] sourcePos = new int[2];
+        int[] targetPos = new int[2];
+        sourceCell.getLocationInWindow(sourcePos);
+        targetCell.getLocationInWindow(targetPos);
 
-        // Prepare target immediately but offset it to source position
-        targetCell.setTranslationX(startX - endX);
-        targetCell.setTranslationY(startY - endY);
+        float diffX = sourcePos[0] - targetPos[0];
+        float diffY = sourcePos[1] - targetPos[1];
+
+        // Prepare target view visually at the START position
         targetCell.setText(characterTag);
         targetCell.setBackgroundColor(targetBgColor);
+        targetCell.setTranslationX(diffX);
+        targetCell.setTranslationY(diffY);
         targetCell.setAlpha(1.0f);
         
-        // Clear source immediately
+        // Clear source view
         sourceCell.setText("");
         sourceCell.setBackgroundColor(Color.parseColor(DEFAULT_CELL_COLOR));
 
-        // Use Hardware Layer for smooth translation
-        targetCell.setLayerType(View.LAYER_TYPE_HARDWARE, null);
+        // Bring target to front to prevent "under the grid" look
+        targetCell.bringToFront();
+        if (targetCell.getParent() != null) {
+            ((View)targetCell.getParent()).invalidate();
+        }
+
         targetCell.animate()
                 .translationX(0)
                 .translationY(0)
-                .setDuration(400)
+                .setDuration(300) // Slightly faster for snappier feel
                 .setInterpolator(new AccelerateDecelerateInterpolator())
                 .setListener(new AnimatorListenerAdapter() {
                     @Override
                     public void onAnimationEnd(Animator animation) {
-                        targetCell.setLayerType(View.LAYER_TYPE_NONE, null);
                         if (callback != null) callback.onFinished();
                     }
                 })
@@ -81,7 +93,6 @@ public class GridAnimationManager {
         bullet.setX(startX);
         bullet.setY(startY);
 
-        bullet.setLayerType(View.LAYER_TYPE_HARDWARE, null);
         bullet.animate()
                 .x(endX)
                 .y(endY)
