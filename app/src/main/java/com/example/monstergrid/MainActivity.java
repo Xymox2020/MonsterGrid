@@ -196,7 +196,7 @@ public class MainActivity extends AppCompatActivity {
         int oldX = p.x, oldY = p.y;
         p.x = tr; p.y = tc; // Update logical position immediately
 
-        GridAnimationManager.animateStationaryToTarget(cells[oldX][oldY], cells[tr][tc], tag, color, () -> {
+        GridAnimationManager.animateStationaryToTarget(cells[oldX][oldY], cells[tr][tc], tag, color, effectLayer, () -> {
             p.hasMoved = true;
             isAnimating = false;
             useAction("Moved!");
@@ -356,7 +356,7 @@ public class MainActivity extends AppCompatActivity {
         } else if (isEmpty(next[0], next[1])) {
             int oldX = m.x, oldY = m.y;
             m.x = next[0]; m.y = next[1];
-            GridAnimationManager.animateStationaryToTarget(cells[oldX][oldY], cells[m.x][m.y], "🧟\n" + m.hp, Color.parseColor("#224422"), () -> {
+            GridAnimationManager.animateStationaryToTarget(cells[oldX][oldY], cells[m.x][m.y], "🧟\n" + m.hp, Color.parseColor("#224422"), effectLayer, () -> {
                 processMonsterSequence(index + 1);
             });
         } else {

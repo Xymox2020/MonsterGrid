@@ -20,12 +20,14 @@ public class GridAnimationManager {
     }
 
     private static final String DEFAULT_CELL_COLOR = "#1A1A1A";
-    private static TextView turnIndicator;
+    private static FrameLayout turnIndicatorContainer;
+    private static TextView turnIndicatorView;
 
     /**
      * Animates a character moving from one cell to another.
+     * Also animates the turn indicator in sync if it is currently visible.
      */
-    public static void animateStationaryToTarget(TextView sourceCell, TextView targetCell, String characterTag, int targetBgColor, AnimationCallback callback) {
+    public static void animateStationaryToTarget(TextView sourceCell, TextView targetCell, String characterTag, int targetBgColor, FrameLayout effectLayer, AnimationCallback callback) {
         sourceCell.animate().cancel();
         sourceCell.setTranslationX(0);
         sourceCell.setTranslationY(0);
@@ -57,6 +59,36 @@ public class GridAnimationManager {
 
         targetCell.bringToFront();
 
+        // Animate turn indicator if it's currently active
+        if (turnIndicatorContainer != null && turnIndicatorContainer.getVisibility() == View.VISIBLE && effectLayer != null) {
+            turnIndicatorContainer.animate().cancel();
+            
+            // Position at final destination (targetPos) without considering current cell translations
+            int[] layerPos = new int[2];
+            effectLayer.getLocationInWindow(layerPos);
+            
+            int cellWidth = targetCell.getWidth();
+            int cellHeight = targetCell.getHeight();
+
+            updateIndicatorLayoutParams(
+                targetPos[0] - layerPos[0],
+                targetPos[1] - layerPos[1],
+                cellWidth,
+                cellHeight,
+                effectLayer
+            );
+
+            // Start from the source offset and animate to 0 (the target)
+            turnIndicatorContainer.setTranslationX(diffX);
+            turnIndicatorContainer.setTranslationY(diffY);
+            turnIndicatorContainer.animate()
+                    .translationX(0)
+                    .translationY(0)
+                    .setDuration(300)
+                    .setInterpolator(new AccelerateDecelerateInterpolator())
+                    .start();
+        }
+
         targetCell.animate()
                 .translationX(0)
                 .translationY(0)
@@ -71,74 +103,82 @@ public class GridAnimationManager {
                 .start();
     }
 
+    private static void updateIndicatorLayoutParams(int left, int top, int width, int height, FrameLayout effectLayer) {
+        if (turnIndicatorContainer == null) return;
+        
+        if (turnIndicatorContainer.getParent() != effectLayer) {
+            if (turnIndicatorContainer.getParent() != null) {
+                ((FrameLayout) turnIndicatorContainer.getParent()).removeView(turnIndicatorContainer);
+            }
+            effectLayer.addView(turnIndicatorContainer);
+        }
+
+        FrameLayout.LayoutParams lp = (FrameLayout.LayoutParams) turnIndicatorContainer.getLayoutParams();
+        if (lp == null) {
+            lp = new FrameLayout.LayoutParams(width, height);
+        } else {
+            lp.width = width;
+            lp.height = height;
+        }
+
+        lp.leftMargin = left;
+        lp.topMargin = top - (int)(height * 0.85f);
+        lp.gravity = Gravity.TOP | Gravity.START;
+
+        turnIndicatorContainer.setLayoutParams(lp);
+        turnIndicatorContainer.setVisibility(View.VISIBLE);
+        turnIndicatorContainer.bringToFront();
+    }
+
     /**
      * Updates the position of the turn indicator arrow.
-     * Uses LayoutParams to avoid conflicts with translation animations.
      */
     public static void updateTurnIndicator(final View playerCell, final FrameLayout effectLayer) {
         if (playerCell == null || effectLayer == null) return;
 
-        if (turnIndicator == null) {
-            turnIndicator = new TextView(playerCell.getContext());
-            turnIndicator.setText("▼");
-            turnIndicator.setTextColor(Color.YELLOW);
-            turnIndicator.setTextSize(24);
-            turnIndicator.setGravity(Gravity.CENTER);
-            turnIndicator.setShadowLayer(8, 0, 2, Color.BLACK);
+        if (turnIndicatorContainer == null) {
+            turnIndicatorContainer = new FrameLayout(playerCell.getContext());
+            turnIndicatorView = new TextView(playerCell.getContext());
+            turnIndicatorView.setText("▼");
+            turnIndicatorView.setTextColor(Color.YELLOW);
+            turnIndicatorView.setTextSize(24);
+            turnIndicatorView.setGravity(Gravity.CENTER);
+            turnIndicatorView.setShadowLayer(8, 0, 2, Color.BLACK);
             
-            // Subtle floating animation using translationY as an offset
-            ObjectAnimator animator = ObjectAnimator.ofFloat(turnIndicator, "translationY", 0f, -25f, 0f);
+            turnIndicatorContainer.addView(turnIndicatorView, new FrameLayout.LayoutParams(
+                    FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT));
+
+            ObjectAnimator animator = ObjectAnimator.ofFloat(turnIndicatorView, "translationY", 0f, -25f, 0f);
             animator.setDuration(1000);
             animator.setRepeatCount(ValueAnimator.INFINITE);
             animator.setInterpolator(new AccelerateDecelerateInterpolator());
             animator.start();
         }
 
-        // Ensure measurements are ready before positioning
         playerCell.post(() -> {
-            if (turnIndicator.getParent() != effectLayer) {
-                if (turnIndicator.getParent() != null) {
-                    ((FrameLayout) turnIndicator.getParent()).removeView(turnIndicator);
-                }
-                effectLayer.addView(turnIndicator);
-            }
-
             int[] cellPos = new int[2];
             int[] layerPos = new int[2];
             playerCell.getLocationInWindow(cellPos);
             effectLayer.getLocationInWindow(layerPos);
 
-            // Fail-safe: if the cell isn't visible or positioned yet, hide the indicator
-            if (cellPos[0] == 0 && cellPos[1] == 0) {
-                turnIndicator.setVisibility(View.GONE);
-                return;
-            }
+            if (cellPos[0] == 0 && cellPos[1] == 0) return;
 
-            int cellWidth = playerCell.getWidth();
-            int cellHeight = playerCell.getHeight();
-
-            FrameLayout.LayoutParams lp = (FrameLayout.LayoutParams) turnIndicator.getLayoutParams();
-            if (lp == null) {
-                lp = new FrameLayout.LayoutParams(cellWidth, cellHeight);
-            } else {
-                lp.width = cellWidth;
-                lp.height = cellHeight;
-            }
-
-            // Position the arrow's layout box exactly above the cell
-            lp.leftMargin = cellPos[0] - layerPos[0];
-            lp.topMargin = cellPos[1] - layerPos[1] - (int)(cellHeight * 0.85f);
-            lp.gravity = Gravity.TOP | Gravity.START;
-
-            turnIndicator.setLayoutParams(lp);
-            turnIndicator.setVisibility(View.VISIBLE);
-            turnIndicator.bringToFront();
+            updateIndicatorLayoutParams(
+                cellPos[0] - layerPos[0],
+                cellPos[1] - layerPos[1],
+                playerCell.getWidth(),
+                playerCell.getHeight(),
+                effectLayer
+            );
+            
+            turnIndicatorContainer.setTranslationX(0);
+            turnIndicatorContainer.setTranslationY(0);
         });
     }
     
     public static void hideTurnIndicator() {
-        if (turnIndicator != null) {
-            turnIndicator.setVisibility(View.GONE);
+        if (turnIndicatorContainer != null) {
+            turnIndicatorContainer.setVisibility(View.GONE);
         }
     }
 
