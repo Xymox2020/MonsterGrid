@@ -119,19 +119,37 @@ public class MainActivity extends AppCompatActivity {
     private void setupGrid() {
         GridLayout gridLayout = findViewById(R.id.gameGrid);
         int displayWidth = getResources().getDisplayMetrics().widthPixels;
-        int cellSize = (displayWidth - 40) / GRID_SIZE; // Adjust for padding
+        // Adjust available width for side padding
+        int availableWidth = displayWidth - 48; 
+        int cellSize = availableWidth / GRID_SIZE;
+
+        gridLayout.removeAllViews();
+        gridLayout.setColumnCount(GRID_SIZE);
+        gridLayout.setRowCount(GRID_SIZE);
 
         for (int i = 0; i < GRID_SIZE; i++) {
             for (int j = 0; j < GRID_SIZE; j++) {
                 TextView cell = new TextView(this);
-                GridLayout.LayoutParams params = new GridLayout.LayoutParams();
+                
+                // Use explicit Specs with FILL to ensure the cell occupies the entire allotted space,
+                // preventing the GridLayout background (gray bars) from leaking inside the cell area.
+                GridLayout.LayoutParams params = new GridLayout.LayoutParams(
+                        GridLayout.spec(i, GridLayout.FILL),
+                        GridLayout.spec(j, GridLayout.FILL)
+                );
+                
                 params.width = cellSize;
                 params.height = cellSize;
+                // Consistent 1px margins create the grid lines from the GridLayout background.
                 params.setMargins(1, 1, 1, 1);
+                
                 cell.setLayoutParams(params);
                 cell.setBackgroundColor(Color.parseColor("#1A1A1A"));
                 cell.setGravity(Gravity.CENTER);
                 cell.setTextSize(14);
+                cell.setTextColor(Color.WHITE);
+                cell.setIncludeFontPadding(false);
+                cell.setLineSpacing(0, 0.9f); // Tighten spacing to fit emoji + text perfectly
                 
                 final int row = i;
                 final int col = j;
