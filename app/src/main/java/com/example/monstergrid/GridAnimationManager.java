@@ -73,6 +73,44 @@ public class GridAnimationManager {
     }
 
     /**
+     * Animates a lunge attack (melee) from source towards target.
+     */
+    public static void animateMeleeAttack(View attackerCell, View targetCell, AnimationCallback callback) {
+        int[] attackerPos = new int[2];
+        int[] targetPos = new int[2];
+        attackerCell.getLocationInWindow(attackerPos);
+        targetCell.getLocationInWindow(targetPos);
+
+        float diffX = (targetPos[0] - attackerPos[0]) * 0.5f;
+        float diffY = (targetPos[1] - attackerPos[1]) * 0.5f;
+
+        attackerCell.bringToFront();
+        attackerCell.animate()
+                .translationX(diffX)
+                .translationY(diffY)
+                .setDuration(150)
+                .setInterpolator(new AccelerateInterpolator())
+                .setListener(new AnimatorListenerAdapter() {
+                    @Override
+                    public void onAnimationEnd(Animator animation) {
+                        attackerCell.animate()
+                                .translationX(0)
+                                .translationY(0)
+                                .setDuration(150)
+                                .setInterpolator(new DecelerateInterpolator())
+                                .setListener(new AnimatorListenerAdapter() {
+                                    @Override
+                                    public void onAnimationEnd(Animator animation) {
+                                        if (callback != null) callback.onFinished();
+                                    }
+                                })
+                                .start();
+                    }
+                })
+                .start();
+    }
+
+    /**
      * Animates a projectile (bullet) from source to target.
      */
     public static void animateProjectile(View sourceCell, View targetCell, FrameLayout effectLayer, AnimationCallback callback) {
@@ -113,7 +151,7 @@ public class GridAnimationManager {
                 .start();
     }
 
-    private static void showImpactEffect(View targetCell, FrameLayout effectLayer, AnimationCallback callback) {
+    public static void showImpactEffect(View targetCell, FrameLayout effectLayer, AnimationCallback callback) {
         View impact = new View(targetCell.getContext());
         int size = (int)(targetCell.getWidth() * 1.2);
         impact.setLayoutParams(new FrameLayout.LayoutParams(size, size));
