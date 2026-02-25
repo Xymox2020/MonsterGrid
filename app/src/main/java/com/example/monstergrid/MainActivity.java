@@ -9,6 +9,7 @@ import android.view.View;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
 import android.widget.Button;
+import android.widget.FrameLayout;
 import android.widget.GridLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -37,6 +38,7 @@ public class MainActivity extends AppCompatActivity {
     private ProgressBar expBar;
     private Button btnMove, btnAttack;
     private View upgradeOverlay;
+    private FrameLayout effectLayer;
     private Button[] upgradeButtons = new Button[3];
     private Random random = new Random();
     private Handler mainHandler = new Handler(Looper.getMainLooper());
@@ -54,6 +56,7 @@ public class MainActivity extends AppCompatActivity {
         btnMove = findViewById(R.id.btnAction1);
         btnAttack = findViewById(R.id.btnAction2);
         upgradeOverlay = findViewById(R.id.upgradeOverlay);
+        effectLayer = findViewById(R.id.effectLayer);
         upgradeButtons[0] = findViewById(R.id.upgrade1);
         upgradeButtons[1] = findViewById(R.id.upgrade2);
         upgradeButtons[2] = findViewById(R.id.upgrade3);
@@ -83,6 +86,11 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        findViewById(R.id.btnEndTurn).setOnClickListener(v -> {
+            if (isAnimating) return;
+            endTurn();
+        });
+
         updateUI();
     }
 
@@ -110,7 +118,8 @@ public class MainActivity extends AppCompatActivity {
 
     private void setupGrid() {
         GridLayout gridLayout = findViewById(R.id.gameGrid);
-        int cellSize = getResources().getDisplayMetrics().widthPixels / 11;
+        int displayWidth = getResources().getDisplayMetrics().widthPixels;
+        int cellSize = (displayWidth - 40) / GRID_SIZE; // Adjust for padding
 
         for (int i = 0; i < GRID_SIZE; i++) {
             for (int j = 0; j < GRID_SIZE; j++) {
@@ -120,7 +129,7 @@ public class MainActivity extends AppCompatActivity {
                 params.height = cellSize;
                 params.setMargins(1, 1, 1, 1);
                 cell.setLayoutParams(params);
-                cell.setBackgroundColor(Color.parseColor("#222222"));
+                cell.setBackgroundColor(Color.parseColor("#1A1A1A")); // Slightly lighter than background
                 cell.setGravity(Gravity.CENTER);
                 cell.setTextSize(14);
                 
@@ -164,7 +173,7 @@ public class MainActivity extends AppCompatActivity {
         } else if (isAttackMode && !p.hasAttacked) {
             if (GameRules.isValidPlayerAttack(p.x, p.y, r, c, p.rangeModifier)) {
                 if (isMonsterAt(r, c)) attackMonster(r, c);
-                else if (isOpponentAt(r, c)) attackOpponent();
+                else if (isOpponentAt(r, c)) attackOpponent(r, c);
             }
         }
     }
@@ -185,36 +194,47 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void attackMonster(int r, int c) {
+        isAnimating = true;
+        isAttackMode = false;
+        Player p = getCurrentPlayer();
         Monster m = getMonsterAt(r, c);
-        int roll = random.nextInt(6) + 1;
-        int damage = roll + getCurrentPlayer().damageModifier;
-        m.hp -= damage;
-        getCurrentPlayer().hasAttacked = true;
-        
-        Animation anim = new AlphaAnimation(1.0f, 0.0f);
-        anim.setDuration(200);
-        cells[r][c].startAnimation(anim);
 
-        if (m.hp <= 0) {
-            monsters.remove(m);
-            getCurrentPlayer().exp += 3;
-            if (getCurrentPlayer().canLevelUp()) showUpgradeOverlay();
-        }
-        useAction("Shot for " + damage + " DMG!");
+        GridAnimationManager.animateProjectile(cells[p.x][p.y], cells[r][c], effectLayer, () -> {
+            int roll = random.nextInt(6) + 1;
+            int damage = roll + p.damageModifier;
+            m.hp -= damage;
+            p.hasAttacked = true;
+
+            if (m.hp <= 0) {
+                monsters.remove(m);
+                p.exp += 3;
+                if (p.canLevelUp()) showUpgradeOverlay();
+            }
+            isAnimating = false;
+            useAction("Shot for " + damage + " DMG!");
+        });
     }
 
-    private void attackOpponent() {
+    private void attackOpponent(int r, int c) {
+        isAnimating = true;
+        isAttackMode = false;
+        Player p = getCurrentPlayer();
         Player target = (currentPlayer == 1) ? player2 : player1;
-        int roll = random.nextInt(6) + 1;
-        int damage = roll + getCurrentPlayer().damageModifier;
-        target.hp -= damage;
-        getCurrentPlayer().hasAttacked = true;
 
-        if (target.hp <= 0) {
-            target.hp = 0;
-            finish();
-        }
-        useAction("Hit Player for " + damage + " DMG!");
+        GridAnimationManager.animateProjectile(cells[p.x][p.y], cells[r][c], effectLayer, () -> {
+            int roll = random.nextInt(6) + 1;
+            int damage = roll + p.damageModifier;
+            target.hp -= damage;
+            p.hasAttacked = true;
+
+            if (target.hp <= 0) {
+                target.hp = 0;
+                Toast.makeText(this, "GAME OVER! PLAYER " + currentPlayer + " WINS!", Toast.LENGTH_LONG).show();
+                finish();
+            }
+            isAnimating = false;
+            useAction("Hit Player for " + damage + " DMG!");
+        });
     }
 
     private void showUpgradeOverlay() {
@@ -253,7 +273,7 @@ public class MainActivity extends AppCompatActivity {
         logText.setText(msg);
         
         if (getCurrentPlayer().hasMoved && getCurrentPlayer().hasAttacked) {
-            mainHandler.postDelayed(this::endTurn, 400);
+            mainHandler.postDelayed(this::endTurn, 600); // Delayed transition
         } else {
             drawBoard();
             updateUI();
@@ -261,6 +281,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void endTurn() {
+        if (isAnimating) return;
         getCurrentPlayer().resetTurn();
         currentPlayer = (currentPlayer == 1) ? 2 : 1;
         turnCounter++;
@@ -289,9 +310,9 @@ public class MainActivity extends AppCompatActivity {
             target.hp -= m.damage;
             // Brief "bite" animation
             Animation anim = new AlphaAnimation(1.0f, 0.4f);
-            anim.setDuration(200);
+            anim.setDuration(250);
             cells[m.x][m.y].startAnimation(anim);
-            mainHandler.postDelayed(() -> animateNextMonster(index + 1), 250);
+            mainHandler.postDelayed(() -> animateNextMonster(index + 1), 400);
         } else if (isEmpty(next[0], next[1])) {
             int oldX = m.x;
             int oldY = m.y;
@@ -325,7 +346,7 @@ public class MainActivity extends AppCompatActivity {
         for (int i = 0; i < GRID_SIZE; i++) {
             for (int j = 0; j < GRID_SIZE; j++) {
                 cells[i][j].setText("");
-                cells[i][j].setBackgroundColor(Color.parseColor("#222222"));
+                cells[i][j].setBackgroundColor(Color.parseColor("#1A1A1A"));
             }
         }
         cells[player1.x][player1.y].setText("P1\n🔫");

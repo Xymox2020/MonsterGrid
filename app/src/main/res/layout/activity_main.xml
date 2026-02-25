@@ -2,7 +2,8 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#0F0F0F">
+    android:background="#0F0F0F"
+    android:fitsSystemWindows="true">
 
     <!-- Premium Header -->
     <LinearLayout
@@ -105,6 +106,7 @@
 
     <!-- Professional Game Grid Container -->
     <FrameLayout
+        android:id="@+id/gridContainer"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_below="@id/header"
@@ -128,7 +130,7 @@
                     android:layout_height="wrap_content"
                     android:columnCount="10"
                     android:rowCount="10"
-                    android:background="#222222"
+                    android:background="#333333"
                     android:padding="1dp">
                     <!-- Cells -->
                 </GridLayout>
@@ -202,6 +204,15 @@
             android:letterSpacing="0.05"/>
     </LinearLayout>
 
+    <!-- Visual Layer for Projectiles and Impacts -->
+    <FrameLayout
+        android:id="@+id/effectLayer"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:elevation="20dp"
+        android:clickable="false"
+        android:focusable="false"/>
+
     <!-- Cinematic Upgrade Overlay -->
     <FrameLayout
         android:id="@+id/upgradeOverlay"
@@ -209,7 +220,7 @@
         android:layout_height="match_parent"
         android:background="#F2000000"
         android:visibility="gone"
-        android:elevation="20dp"
+        android:elevation="30dp"
         android:clickable="true"
         android:focusable="true">
         
