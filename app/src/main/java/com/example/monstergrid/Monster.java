@@ -1,13 +1,17 @@
 package com.example.monstergrid;
 
 public class Monster {
-    int x;
-    int y;
-    int hp;
+    public int x;
+    public int y;
+    public int hp;
+    public int maxHp;
+    public int damage;
 
-    public Monster(int x, int y) {
+    public Monster(int x, int y, int level) {
         this.x = x;
         this.y = y;
-        this.hp = 6;
+        this.maxHp = 6 + (level * 2);
+        this.hp = maxHp;
+        this.damage = 1 + (level / 2);
     }
 }
