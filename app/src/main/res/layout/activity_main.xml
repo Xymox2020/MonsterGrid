@@ -5,7 +5,7 @@
     android:background="#0F0F0F"
     android:fitsSystemWindows="true">
 
-    <!-- Premium Header -->
+    <!-- Premium Header (Statistics only, no title) -->
     <LinearLayout
         android:id="@+id/header"
         android:layout_width="match_parent"
