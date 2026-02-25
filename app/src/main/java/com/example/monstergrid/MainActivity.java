@@ -36,7 +36,7 @@ public class MainActivity extends AppCompatActivity {
     private TextView statusText, p1Stats, p2Stats, logText;
     private ProgressBar expBar;
     private Button btnMove, btnAttack;
-    private View upgradeOverlay;
+    private View upgradeOverlay, mainRoot;
     private FrameLayout effectLayer;
     private Button[] upgradeButtons = new Button[3];
     private Random random = new Random();
@@ -47,6 +47,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        mainRoot = findViewById(R.id.mainRoot);
         statusText = findViewById(R.id.statusText);
         p1Stats = findViewById(R.id.p1Stats);
         p2Stats = findViewById(R.id.p2Stats);
@@ -211,7 +212,8 @@ public class MainActivity extends AppCompatActivity {
 
         GridAnimationManager.animateProjectile(cells[p.x][p.y], cells[r][c], effectLayer, () -> {
             int roll = random.nextInt(6) + 1;
-            int damage = roll + p.damageModifier;
+            boolean isCrit = random.nextInt(100) < p.critChance;
+            int damage = (roll + p.damageModifier) * (isCrit ? 2 : 1);
             m.hp -= damage;
             p.hasAttacked = true;
 
@@ -227,7 +229,8 @@ public class MainActivity extends AppCompatActivity {
             }
 
             isAnimating = false;
-            useAction("Shot for " + damage + " DMG!");
+            String msg = (isCrit ? "CRIT! " : "") + "Shot for " + damage + " DMG!";
+            useAction(msg);
         });
     }
 
@@ -240,7 +243,8 @@ public class MainActivity extends AppCompatActivity {
 
         GridAnimationManager.animateProjectile(cells[p.x][p.y], cells[r][c], effectLayer, () -> {
             int roll = random.nextInt(6) + 1;
-            int damage = roll + p.damageModifier;
+            boolean isCrit = random.nextInt(100) < p.critChance;
+            int damage = Math.max(0, (roll + p.damageModifier) * (isCrit ? 2 : 1) - target.armor);
             target.hp -= damage;
             p.hasAttacked = true;
 
@@ -251,7 +255,8 @@ public class MainActivity extends AppCompatActivity {
                 finish();
             }
             isAnimating = false;
-            useAction("Hit Player for " + damage + " DMG!");
+            String msg = (isCrit ? "CRIT! " : "") + "Hit Player for " + damage + " DMG!";
+            useAction(msg);
         });
     }
 
@@ -271,8 +276,12 @@ public class MainActivity extends AppCompatActivity {
     private void showUpgradeOverlay() {
         upgradeOverlay.setVisibility(View.VISIBLE);
         List<String> options = new ArrayList<>();
-        options.add("DMG +2"); options.add("RANGE +1"); options.add("MOVE +1");
-        options.add("HEAL +10 HP"); options.add("MAX HP +5");
+        options.add("DMG +2"); 
+        options.add("RANGE +1"); 
+        options.add("MOVE +1");
+        options.add("HEAL +10 HP"); 
+        options.add("CRIT +20%"); 
+        options.add("ARMOR +1");
         Collections.shuffle(options);
 
         for (int i = 0; i < 3; i++) {
@@ -295,7 +304,8 @@ public class MainActivity extends AppCompatActivity {
         else if (type.contains("RANGE")) p.rangeModifier += 1;
         else if (type.contains("MOVE")) p.movementModifier += 1;
         else if (type.contains("HEAL")) p.hp = Math.min(p.maxHp, p.hp + 10);
-        else if (type.contains("MAX HP")) { p.maxHp += 5; p.hp += 5; }
+        else if (type.contains("CRIT")) p.critChance += 20;
+        else if (type.contains("ARMOR")) p.armor += 1;
     }
 
     private void useAction(String msg) {
@@ -319,6 +329,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void moveMonstersAnimated() {
         isAnimating = true;
+        GridAnimationManager.hideTurnIndicator();
         processMonsterSequence(0);
     }
 
@@ -337,7 +348,8 @@ public class MainActivity extends AppCompatActivity {
         if (next[0] == target.x && next[1] == target.y) {
             // Zombie attacks!
             GridAnimationManager.animateMeleeAttack(cells[m.x][m.y], cells[target.x][target.y], () -> {
-                target.hp -= m.damage;
+                int damage = Math.max(0, m.damage - target.armor);
+                target.hp -= damage;
                 updateUI();
                 processMonsterSequence(index + 1);
             });
@@ -359,11 +371,23 @@ public class MainActivity extends AppCompatActivity {
     private void updateUI() {
         Player p = getCurrentPlayer();
         statusText.setText("Player " + currentPlayer + " Turn");
-        p1Stats.setText("P1 HP: " + player1.hp);
-        p2Stats.setText("P2 HP: " + player2.hp);
+        p1Stats.setText("P1 HP: " + player1.hp + (player1.armor > 0 ? " (🛡️" + player1.armor + ")" : ""));
+        p2Stats.setText("P2 HP: " + player2.hp + (player2.armor > 0 ? " (🛡️" + player2.armor + ")" : ""));
         btnMove.setEnabled(!p.hasMoved && !isAnimating);
         btnAttack.setEnabled(!p.hasAttacked && !isAnimating);
         expBar.setProgress(p.exp);
+
+        // Update Background Gradient
+        if (currentPlayer == 1) {
+            mainRoot.setBackgroundResource(R.drawable.gradient_player1);
+        } else {
+            mainRoot.setBackgroundResource(R.drawable.gradient_player2);
+        }
+
+        // Update Turn Indicator
+        if (!isAnimating) {
+            GridAnimationManager.updateTurnIndicator(cells[p.x][p.y], effectLayer);
+        }
     }
 
     private void drawBoard() {

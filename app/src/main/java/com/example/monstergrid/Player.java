@@ -7,6 +7,8 @@ public class Player {
     public int damageModifier;
     public int rangeModifier;
     public int movementModifier;
+    public int armor = 0;
+    public int critChance = 0; // in percentage
     
     // Turn state
     public boolean hasMoved = false;

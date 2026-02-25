@@ -2,7 +2,10 @@ package com.example.monstergrid;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
+import android.animation.ObjectAnimator;
+import android.animation.ValueAnimator;
 import android.graphics.Color;
+import android.view.Gravity;
 import android.view.View;
 import android.view.animation.AccelerateDecelerateInterpolator;
 import android.view.animation.AccelerateInterpolator;
@@ -17,13 +20,12 @@ public class GridAnimationManager {
     }
 
     private static final String DEFAULT_CELL_COLOR = "#1A1A1A";
+    private static TextView turnIndicator;
 
     /**
      * Animates a character moving from one cell to another.
      */
     public static void animateStationaryToTarget(TextView sourceCell, TextView targetCell, String characterTag, int targetBgColor, AnimationCallback callback) {
-        // Essential: Stop any previous animations on these cells and reset their state
-        // to ensure getLocationInWindow returns the base layout position.
         sourceCell.animate().cancel();
         sourceCell.setTranslationX(0);
         sourceCell.setTranslationY(0);
@@ -44,18 +46,15 @@ public class GridAnimationManager {
         float diffX = sourcePos[0] - targetPos[0];
         float diffY = sourcePos[1] - targetPos[1];
 
-        // Prepare target view visually at the START position
         targetCell.setText(characterTag);
         targetCell.setBackgroundColor(targetBgColor);
         targetCell.setTranslationX(diffX);
         targetCell.setTranslationY(diffY);
         targetCell.setAlpha(1.0f);
         
-        // Clear source view
         sourceCell.setText("");
         sourceCell.setBackgroundColor(Color.parseColor(DEFAULT_CELL_COLOR));
 
-        // Bring target to front to ensure it's above other elements during move
         targetCell.bringToFront();
 
         targetCell.animate()
@@ -73,8 +72,76 @@ public class GridAnimationManager {
     }
 
     /**
-     * Animates a lunge attack (melee) from source towards target.
+     * Updates the position of the turn indicator arrow.
+     * Uses LayoutParams to avoid conflicts with translation animations.
      */
+    public static void updateTurnIndicator(final View playerCell, final FrameLayout effectLayer) {
+        if (playerCell == null || effectLayer == null) return;
+
+        if (turnIndicator == null) {
+            turnIndicator = new TextView(playerCell.getContext());
+            turnIndicator.setText("▼");
+            turnIndicator.setTextColor(Color.YELLOW);
+            turnIndicator.setTextSize(24);
+            turnIndicator.setGravity(Gravity.CENTER);
+            turnIndicator.setShadowLayer(8, 0, 2, Color.BLACK);
+            
+            // Subtle floating animation using translationY as an offset
+            ObjectAnimator animator = ObjectAnimator.ofFloat(turnIndicator, "translationY", 0f, -25f, 0f);
+            animator.setDuration(1000);
+            animator.setRepeatCount(ValueAnimator.INFINITE);
+            animator.setInterpolator(new AccelerateDecelerateInterpolator());
+            animator.start();
+        }
+
+        // Ensure measurements are ready before positioning
+        playerCell.post(() -> {
+            if (turnIndicator.getParent() != effectLayer) {
+                if (turnIndicator.getParent() != null) {
+                    ((FrameLayout) turnIndicator.getParent()).removeView(turnIndicator);
+                }
+                effectLayer.addView(turnIndicator);
+            }
+
+            int[] cellPos = new int[2];
+            int[] layerPos = new int[2];
+            playerCell.getLocationInWindow(cellPos);
+            effectLayer.getLocationInWindow(layerPos);
+
+            // Fail-safe: if the cell isn't visible or positioned yet, hide the indicator
+            if (cellPos[0] == 0 && cellPos[1] == 0) {
+                turnIndicator.setVisibility(View.GONE);
+                return;
+            }
+
+            int cellWidth = playerCell.getWidth();
+            int cellHeight = playerCell.getHeight();
+
+            FrameLayout.LayoutParams lp = (FrameLayout.LayoutParams) turnIndicator.getLayoutParams();
+            if (lp == null) {
+                lp = new FrameLayout.LayoutParams(cellWidth, cellHeight);
+            } else {
+                lp.width = cellWidth;
+                lp.height = cellHeight;
+            }
+
+            // Position the arrow's layout box exactly above the cell
+            lp.leftMargin = cellPos[0] - layerPos[0];
+            lp.topMargin = cellPos[1] - layerPos[1] - (int)(cellHeight * 0.85f);
+            lp.gravity = Gravity.TOP | Gravity.START;
+
+            turnIndicator.setLayoutParams(lp);
+            turnIndicator.setVisibility(View.VISIBLE);
+            turnIndicator.bringToFront();
+        });
+    }
+    
+    public static void hideTurnIndicator() {
+        if (turnIndicator != null) {
+            turnIndicator.setVisibility(View.GONE);
+        }
+    }
+
     public static void animateMeleeAttack(View attackerCell, View targetCell, AnimationCallback callback) {
         int[] attackerPos = new int[2];
         int[] targetPos = new int[2];
@@ -110,9 +177,6 @@ public class GridAnimationManager {
                 .start();
     }
 
-    /**
-     * Animates a projectile (bullet) from source to target.
-     */
     public static void animateProjectile(View sourceCell, View targetCell, FrameLayout effectLayer, AnimationCallback callback) {
         View bullet = new View(sourceCell.getContext());
         int size = sourceCell.getWidth() / 4;
