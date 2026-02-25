@@ -1,21 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/mainRoot"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#0F0F0F"
+    android:background="@drawable/main_bg_gradient"
     android:fitsSystemWindows="true"
     android:clipChildren="false"
     android:clipToPadding="false">
 
-    <!-- Premium Header -->
+    <!-- Glassmorphism Header -->
     <LinearLayout
         android:id="@+id/header"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:padding="16dp"
-        android:background="#1E1E1E"
+        android:layout_margin="12dp"
+        android:background="@drawable/glass_panel"
         android:elevation="8dp">
 
         <TextView
@@ -23,25 +25,25 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="PLAYER 1 TURN"
-            android:textColor="#FFD700"
-            android:textSize="24sp"
-            android:textStyle="bold"
-            android:letterSpacing="0.1"
+            android:textColor="#FFFFFF"
+            android:textSize="22sp"
+            android:fontFamily="sans-serif-condensed-medium"
+            android:letterSpacing="0.15"
             android:gravity="center"
             android:textAllCaps="true"/>
 
         <View
-            android:layout_width="60dp"
+            android:layout_width="80dp"
             android:layout_height="2dp"
             android:layout_gravity="center"
-            android:layout_marginTop="4dp"
-            android:background="#FFD700"/>
+            android:layout_marginTop="6dp"
+            android:background="#4DFFFFFF"/>
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:layout_marginTop="12dp">
+            android:layout_marginTop="16dp">
 
             <LinearLayout
                 android:layout_width="0dp"
@@ -54,22 +56,23 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="P1: 20 HP"
-                    android:textColor="#00E5FF"
-                    android:textStyle="bold"
-                    android:textSize="16sp"/>
+                    android:textColor="#4FC3F7"
+                    android:fontFamily="sans-serif-condensed"
+                    android:textSize="18sp"/>
                 <TextView
                     android:id="@+id/p1Level"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="LVL 1"
-                    android:textColor="#00B8D4"
-                    android:textSize="12sp"/>
+                    android:textColor="#B3E5FC"
+                    android:fontFamily="sans-serif-light"
+                    android:textSize="14sp"/>
             </LinearLayout>
 
             <View
                 android:layout_width="1dp"
                 android:layout_height="match_parent"
-                android:background="#333333"/>
+                android:background="#33FFFFFF"/>
 
             <LinearLayout
                 android:layout_width="0dp"
@@ -82,16 +85,17 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="P2: 20 HP"
-                    android:textColor="#FF1744"
-                    android:textStyle="bold"
-                    android:textSize="16sp"/>
+                    android:textColor="#E57373"
+                    android:fontFamily="sans-serif-condensed"
+                    android:textSize="18sp"/>
                 <TextView
                     android:id="@+id/p2Level"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="LVL 1"
-                    android:textColor="#D50000"
-                    android:textSize="12sp"/>
+                    android:textColor="#FFCDD2"
+                     android:fontFamily="sans-serif-light"
+                    android:textSize="14sp"/>
             </LinearLayout>
         </LinearLayout>
 
@@ -99,22 +103,20 @@
             android:id="@+id/expBar"
             style="?android:attr/progressBarStyleHorizontal"
             android:layout_width="match_parent"
-            android:layout_height="6dp"
-            android:layout_marginTop="12dp"
+            android:layout_height="8dp"
+            android:layout_marginTop="16dp"
             android:max="6"
             android:progress="0"
-            android:progressDrawable="@android:drawable/progress_horizontal"
-            android:progressTint="#00FF00"/>
+            android:progressDrawable="@drawable/custom_progress_bar"/>
     </LinearLayout>
 
-    <!-- Professional Game Grid Container -->
+    <!-- Game Grid Container -->
     <FrameLayout
         android:id="@+id/gridContainer"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_below="@id/header"
         android:layout_above="@id/controls"
-        android:padding="4dp"
         android:clipChildren="false"
         android:clipToPadding="false">
 
@@ -125,31 +127,29 @@
             android:scrollbars="none"
             android:clipChildren="false"
             android:clipToPadding="false">
-            
+
             <ScrollView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:scrollbars="none"
                 android:clipChildren="false"
                 android:clipToPadding="false">
-                
+
                 <GridLayout
                     android:id="@+id/gameGrid"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:columnCount="10"
                     android:rowCount="10"
-                    android:background="#333333"
-                    android:padding="1dp"
                     android:clipChildren="false"
                     android:clipToPadding="false">
-                    <!-- Cells -->
+                    <!-- Cells will be added programmatically -->
                 </GridLayout>
             </ScrollView>
         </HorizontalScrollView>
     </FrameLayout>
 
-    <!-- Modern Controls Footer -->
+    <!-- Glassmorphism Controls -->
     <LinearLayout
         android:id="@+id/controls"
         android:layout_width="match_parent"
@@ -157,49 +157,49 @@
         android:layout_alignParentBottom="true"
         android:orientation="vertical"
         android:padding="16dp"
-        android:background="#1E1E1E"
-        android:elevation="8dp">
+        android:layout_margin="12dp"
+        android:background="@drawable/glass_panel">
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="60dp"
+            android:layout_height="56dp"
             android:orientation="horizontal"
             android:gravity="center">
 
             <Button
                 android:id="@+id/btnAction1"
+                style="@style/Widget.AppCompat.Button.Borderless"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:text="MOVE"
                 android:textColor="#FFFFFF"
-                android:backgroundTint="#2E7D32"
+                android:background="@drawable/button_move_bg"
                 android:layout_marginEnd="8dp"
-                android:fontFamily="sans-serif-medium"
-                android:elevation="4dp"/>
+                android:fontFamily="sans-serif-condensed-medium"/>
 
             <Button
                 android:id="@+id/btnAction2"
+                style="@style/Widget.AppCompat.Button.Borderless"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:text="ATTACK"
                 android:textColor="#FFFFFF"
-                android:backgroundTint="#C62828"
+                android:background="@drawable/button_attack_bg"
                 android:layout_marginEnd="8dp"
-                android:fontFamily="sans-serif-medium"
-                android:elevation="4dp"/>
+                android:fontFamily="sans-serif-condensed-medium"/>
 
             <Button
                 android:id="@+id/btnEndTurn"
+                style="@style/Widget.AppCompat.Button.Borderless"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="0.8"
-                android:text="SKIP"
+                android:text="END"
                 android:textColor="#FFFFFF"
-                android:backgroundTint="#455A64"
-                android:fontFamily="sans-serif-medium"
-                android:elevation="4dp"/>
+                android:background="@drawable/button_skip_bg"
+                android:fontFamily="sans-serif-condensed-medium"/>
         </LinearLayout>
 
         <TextView
@@ -207,15 +207,15 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
-            android:text="READY FOR ENGAGEMENT"
-            android:textColor="#888888"
-            android:textSize="12sp"
-            android:textStyle="italic"
+            android:text="SYSTEMS ONLINE"
+            android:textColor="#B0B0B0"
+            android:textSize="14sp"
+            android:fontFamily="sans-serif-light"
             android:gravity="center"
             android:letterSpacing="0.05"/>
     </LinearLayout>
 
-    <!-- Visual Layer for Projectiles and Impacts -->
+    <!-- Visual Layer for Effects -->
     <FrameLayout
         android:id="@+id/effectLayer"
         android:layout_width="match_parent"
@@ -225,38 +225,39 @@
         android:clickable="false"
         android:focusable="false"/>
 
-    <!-- Cinematic Upgrade Overlay -->
+    <!-- Futuristic Upgrade Overlay -->
     <FrameLayout
         android:id="@+id/upgradeOverlay"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="#F2000000"
+        android:background="#E60A0B10"
         android:visibility="gone"
         android:elevation="100dp"
         android:clickable="true"
         android:focusable="true">
-        
+
         <LinearLayout
-            android:layout_width="300dp"
+            android:layout_width="320dp"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:orientation="vertical"
             android:padding="24dp"
-            android:background="#121212">
-            
+            android:background="@drawable/glass_panel">
+
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="NEW ABILITY UNLOCKED"
-                android:textColor="#FFD700"
-                android:textSize="22sp"
-                android:textStyle="bold"
+                android:text="PROTOCOL UPGRADE"
+                android:textColor="#FFFFFF"
+                android:textSize="24sp"
+                android:fontFamily="sans-serif-condensed-medium"
+                android:letterSpacing="0.1"
                 android:gravity="center"
                 android:layout_marginBottom="24dp"/>
-                
-            <Button android:id="@+id/upgrade1" style="@style/Widget.MaterialComponents.Button.OutlinedButton" android:layout_width="match_parent" android:layout_height="64dp" android:textColor="#FFFFFF" android:layout_marginBottom="12dp" android:strokeColor="#333333"/>
-            <Button android:id="@+id/upgrade2" style="@style/Widget.MaterialComponents.Button.OutlinedButton" android:layout_width="match_parent" android:layout_height="64dp" android:textColor="#FFFFFF" android:layout_marginBottom="12dp" android:strokeColor="#333333"/>
-            <Button android:id="@+id/upgrade3" style="@style/Widget.MaterialComponents.Button.OutlinedButton" android:layout_width="match_parent" android:layout_height="64dp" android:textColor="#FFFFFF" android:strokeColor="#333333"/>
+
+            <Button android:id="@+id/upgrade1" style="@style/Widget.MaterialComponents.Button.OutlinedButton" android:layout_width="match_parent" android:layout_height="64dp" android:textColor="#FFFFFF" android:layout_marginBottom="12dp" app:strokeColor="#4DFFFFFF" android:fontFamily="sans-serif-condensed"/>
+            <Button android:id="@+id/upgrade2" style="@style/Widget.MaterialComponents.Button.OutlinedButton" android:layout_width="match_parent" android:layout_height="64dp" android:textColor="#FFFFFF" android:layout_marginBottom="12dp" app:strokeColor="#4DFFFFFF" android:fontFamily="sans-serif-condensed"/>
+            <Button android:id="@+id/upgrade3" style="@style/Widget.MaterialComponents.Button.OutlinedButton" android:layout_width="match_parent" android:layout_height="64dp" android:textColor="#FFFFFF" app:strokeColor="#4DFFFFFF" android:fontFamily="sans-serif-condensed"/>
         </LinearLayout>
     </FrameLayout>
 
