@@ -6,8 +6,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.view.Gravity;
 import android.view.View;
-import android.view.animation.AlphaAnimation;
-import android.view.animation.Animation;
+import android.view.animation.AnticipateOvershootInterpolator;
 import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.GridLayout;
@@ -119,7 +118,6 @@ public class MainActivity extends AppCompatActivity {
     private void setupGrid() {
         GridLayout gridLayout = findViewById(R.id.gameGrid);
         int displayWidth = getResources().getDisplayMetrics().widthPixels;
-        // Adjust available width for side padding
         int availableWidth = displayWidth - 48; 
         int cellSize = availableWidth / GRID_SIZE;
 
@@ -130,17 +128,12 @@ public class MainActivity extends AppCompatActivity {
         for (int i = 0; i < GRID_SIZE; i++) {
             for (int j = 0; j < GRID_SIZE; j++) {
                 TextView cell = new TextView(this);
-                
-                // Use explicit Specs with FILL to ensure the cell occupies the entire allotted space,
-                // preventing the GridLayout background (gray bars) from leaking inside the cell area.
                 GridLayout.LayoutParams params = new GridLayout.LayoutParams(
                         GridLayout.spec(i, GridLayout.FILL),
                         GridLayout.spec(j, GridLayout.FILL)
                 );
-                
                 params.width = cellSize;
                 params.height = cellSize;
-                // Consistent 1px margins create the grid lines from the GridLayout background.
                 params.setMargins(1, 1, 1, 1);
                 
                 cell.setLayoutParams(params);
@@ -149,7 +142,7 @@ public class MainActivity extends AppCompatActivity {
                 cell.setTextSize(14);
                 cell.setTextColor(Color.WHITE);
                 cell.setIncludeFontPadding(false);
-                cell.setLineSpacing(0, 0.9f); // Tighten spacing to fit emoji + text perfectly
+                cell.setLineSpacing(0, 0.9f);
                 
                 final int row = i;
                 final int col = j;
@@ -179,14 +172,10 @@ public class MainActivity extends AppCompatActivity {
 
     private void handleCellClick(int r, int c) {
         if (isAnimating || upgradeOverlay.getVisibility() == View.VISIBLE) return;
-
         Player p = getCurrentPlayer();
-
         if (isMoveMode && !p.hasMoved) {
             if (GameRules.isValidPlayerMove(p.x, p.y, r, c, p.movementModifier) && isEmpty(r, c)) {
                 animatePlayerMove(p, r, c);
-            } else {
-                Toast.makeText(this, "Invalid move!", Toast.LENGTH_SHORT).show();
             }
         } else if (isAttackMode && !p.hasAttacked) {
             if (GameRules.isValidPlayerAttack(p.x, p.y, r, c, p.rangeModifier)) {
@@ -203,9 +192,10 @@ public class MainActivity extends AppCompatActivity {
         String tag = (currentPlayer == 1) ? "P1\n🔫" : "P2\n🔫";
         int color = (currentPlayer == 1) ? Color.parseColor("#004466") : Color.parseColor("#660000");
         
-        GridAnimationManager.animateStationaryToTarget(cells[p.x][p.y], cells[tr][tc], tag, color, () -> {
-            p.x = tr;
-            p.y = tc;
+        int oldX = p.x, oldY = p.y;
+        p.x = tr; p.y = tc; // Update logical position immediately
+
+        GridAnimationManager.animateStationaryToTarget(cells[oldX][oldY], cells[tr][tc], tag, color, () -> {
             p.hasMoved = true;
             isAnimating = false;
             useAction("Moved!");
@@ -225,11 +215,17 @@ public class MainActivity extends AppCompatActivity {
             m.hp -= damage;
             p.hasAttacked = true;
 
+            // Update cell text immediately after impact
             if (m.hp <= 0) {
                 monsters.remove(m);
+                cells[r][c].setText("");
+                cells[r][c].setBackgroundColor(Color.parseColor("#1A1A1A"));
                 p.exp += 3;
                 if (p.canLevelUp()) showUpgradeOverlay();
+            } else {
+                cells[r][c].setText("🧟\n" + m.hp);
             }
+
             isAnimating = false;
             useAction("Shot for " + damage + " DMG!");
         });
@@ -248,9 +244,10 @@ public class MainActivity extends AppCompatActivity {
             target.hp -= damage;
             p.hasAttacked = true;
 
+            updateUI();
             if (target.hp <= 0) {
                 target.hp = 0;
-                Toast.makeText(this, "GAME OVER! PLAYER " + currentPlayer + " WINS!", Toast.LENGTH_LONG).show();
+                Toast.makeText(this, "GAME OVER!", Toast.LENGTH_LONG).show();
                 finish();
             }
             isAnimating = false;
@@ -259,15 +256,11 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void clearHighlights() {
-        isMoveMode = false;
-        isAttackMode = false;
-        // Direct color reset to ensure highlights are gone immediately
         for (int i = 0; i < GRID_SIZE; i++) {
             for (int j = 0; j < GRID_SIZE; j++) {
                 cells[i][j].setBackgroundColor(Color.parseColor("#1A1A1A"));
             }
         }
-        // Redraw essential elements without highlights
         cells[player1.x][player1.y].setBackgroundColor(Color.parseColor("#004466"));
         cells[player2.x][player2.y].setBackgroundColor(Color.parseColor("#660000"));
         for (Monster m : monsters) {
@@ -308,7 +301,7 @@ public class MainActivity extends AppCompatActivity {
     private void useAction(String msg) {
         logText.setText(msg);
         if (getCurrentPlayer().hasMoved && getCurrentPlayer().hasAttacked) {
-            mainHandler.postDelayed(this::endTurn, 600);
+            mainHandler.postDelayed(this::endTurn, 400);
         } else {
             drawBoard();
             updateUI();
@@ -326,10 +319,10 @@ public class MainActivity extends AppCompatActivity {
 
     private void moveMonstersAnimated() {
         isAnimating = true;
-        animateNextMonster(0);
+        processMonsterSequence(0);
     }
 
-    private void animateNextMonster(int index) {
+    private void processMonsterSequence(int index) {
         if (index >= monsters.size()) {
             isAnimating = false;
             drawBoard();
@@ -343,22 +336,23 @@ public class MainActivity extends AppCompatActivity {
         
         if (next[0] == target.x && next[1] == target.y) {
             target.hp -= m.damage;
-            Animation anim = new AlphaAnimation(1.0f, 0.4f);
-            anim.setDuration(250);
-            cells[m.x][m.y].startAnimation(anim);
-            mainHandler.postDelayed(() -> animateNextMonster(index + 1), 400);
+            updateUI();
+            cells[m.x][m.y].animate()
+                    .scaleX(1.4f).scaleY(1.4f)
+                    .setDuration(150)
+                    .setInterpolator(new AnticipateOvershootInterpolator())
+                    .withEndAction(() -> {
+                        cells[m.x][m.y].animate().scaleX(1.0f).scaleY(1.0f).setDuration(100).start();
+                        processMonsterSequence(index + 1);
+                    }).start();
         } else if (isEmpty(next[0], next[1])) {
-            int oldX = m.x;
-            int oldY = m.y;
-            m.x = next[0];
-            m.y = next[1];
-            
+            int oldX = m.x, oldY = m.y;
+            m.x = next[0]; m.y = next[1];
             GridAnimationManager.animateStationaryToTarget(cells[oldX][oldY], cells[m.x][m.y], "🧟\n" + m.hp, Color.parseColor("#224422"), () -> {
-                animateNextMonster(index + 1);
+                processMonsterSequence(index + 1);
             });
         } else {
-            // Monster is blocked, skip to next monster immediately but with a small delay for visual clarity
-            mainHandler.postDelayed(() -> animateNextMonster(index + 1), 50);
+            processMonsterSequence(index + 1);
         }
     }
 
@@ -382,6 +376,9 @@ public class MainActivity extends AppCompatActivity {
             for (int j = 0; j < GRID_SIZE; j++) {
                 cells[i][j].setText("");
                 cells[i][j].setBackgroundColor(Color.parseColor("#1A1A1A"));
+                cells[i][j].setScaleX(1.0f); cells[i][j].setScaleY(1.0f);
+                cells[i][j].setTranslationX(0); cells[i][j].setTranslationY(0);
+                cells[i][j].setAlpha(1.0f);
             }
         }
         cells[player1.x][player1.y].setText("P1\n🔫");

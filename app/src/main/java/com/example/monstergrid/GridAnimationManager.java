@@ -4,7 +4,6 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.graphics.Color;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.animation.AccelerateDecelerateInterpolator;
 import android.view.animation.AccelerateInterpolator;
 import android.view.animation.DecelerateInterpolator;
@@ -20,7 +19,7 @@ public class GridAnimationManager {
     private static final String DEFAULT_CELL_COLOR = "#1A1A1A";
 
     /**
-     * Animates a character moving from one cell to another.
+     * Animates a character moving from one cell to another with hardware acceleration.
      */
     public static void animateStationaryToTarget(TextView sourceCell, TextView targetCell, String characterTag, int targetBgColor, AnimationCallback callback) {
         float startX = sourceCell.getX();
@@ -28,27 +27,28 @@ public class GridAnimationManager {
         float endX = targetCell.getX();
         float endY = targetCell.getY();
 
-        // Prepare target
+        // Prepare target immediately but offset it to source position
+        targetCell.setTranslationX(startX - endX);
+        targetCell.setTranslationY(startY - endY);
         targetCell.setText(characterTag);
         targetCell.setBackgroundColor(targetBgColor);
         targetCell.setAlpha(1.0f);
         
-        // Clear source
+        // Clear source immediately
         sourceCell.setText("");
         sourceCell.setBackgroundColor(Color.parseColor(DEFAULT_CELL_COLOR));
 
-        // Set initial offset for animation
-        targetCell.setTranslationX(startX - endX);
-        targetCell.setTranslationY(startY - endY);
-
+        // Use Hardware Layer for smooth translation
+        targetCell.setLayerType(View.LAYER_TYPE_HARDWARE, null);
         targetCell.animate()
                 .translationX(0)
                 .translationY(0)
-                .setDuration(400) // Smooth duration
+                .setDuration(400)
                 .setInterpolator(new AccelerateDecelerateInterpolator())
                 .setListener(new AnimatorListenerAdapter() {
                     @Override
                     public void onAnimationEnd(Animator animation) {
+                        targetCell.setLayerType(View.LAYER_TYPE_NONE, null);
                         if (callback != null) callback.onFinished();
                     }
                 })
@@ -81,6 +81,7 @@ public class GridAnimationManager {
         bullet.setX(startX);
         bullet.setY(startY);
 
+        bullet.setLayerType(View.LAYER_TYPE_HARDWARE, null);
         bullet.animate()
                 .x(endX)
                 .y(endY)
