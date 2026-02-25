@@ -146,7 +146,7 @@ public class MainActivity extends AppCompatActivity {
     private void initGame() {
         player1 = new Player(0, 4);
         player2 = new Player(9, 4);
-        for (int i = 0; i < 5; i++) spawnMonster();
+        for (int i = 0; i < 8; i++) spawnMonster();
         drawBoard();
     }
 
@@ -179,8 +179,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void animatePlayerMove(Player p, int tr, int tc) {
-        isAnimating = true;
         isMoveMode = false;
+        drawBoard(); // Clear selection tiles
+        isAnimating = true;
         String tag = (currentPlayer == 1) ? "P1\n🔫" : "P2\n🔫";
         int color = (currentPlayer == 1) ? Color.parseColor("#004466") : Color.parseColor("#660000");
         
@@ -194,8 +195,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void attackMonster(int r, int c) {
-        isAnimating = true;
         isAttackMode = false;
+        drawBoard(); // Clear selection tiles
+        isAnimating = true;
         Player p = getCurrentPlayer();
         Monster m = getMonsterAt(r, c);
 
@@ -216,8 +218,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void attackOpponent(int r, int c) {
-        isAnimating = true;
         isAttackMode = false;
+        drawBoard(); // Clear selection tiles
+        isAnimating = true;
         Player p = getCurrentPlayer();
         Player target = (currentPlayer == 1) ? player2 : player1;
 
@@ -295,7 +298,6 @@ public class MainActivity extends AppCompatActivity {
 
     private void animateNextMonster(int index) {
         if (index >= monsters.size()) {
-            if (turnCounter % 2 == 0 && monsters.size() < 12) spawnMonster();
             isAnimating = false;
             drawBoard();
             updateUI();
