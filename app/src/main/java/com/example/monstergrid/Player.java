@@ -20,7 +20,7 @@ public class Player {
         this.exp = 0;
         this.level = 1;
         this.damageModifier = 0;
-        this.rangeModifier = 3;    // Base range 3
+        this.rangeModifier = 2;    // Base range 2
         this.movementModifier = 2; // Base movement 2
     }
 
