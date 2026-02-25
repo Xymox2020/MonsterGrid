@@ -2,8 +2,12 @@ package com.example.monstergrid;
 
 import android.graphics.Color;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.view.Gravity;
 import android.view.View;
+import android.view.animation.AlphaAnimation;
+import android.view.animation.Animation;
 import android.widget.Button;
 import android.widget.GridLayout;
 import android.widget.ProgressBar;
@@ -24,10 +28,10 @@ public class MainActivity extends AppCompatActivity {
     private Player player1, player2;
     private List<Monster> monsters = new ArrayList<>();
     private int currentPlayer = 1;
-    private int actionsLeft = 2;
     private int turnCounter = 0;
     private boolean isMoveMode = false;
     private boolean isAttackMode = false;
+    private boolean isAnimating = false;
 
     private TextView statusText, p1Stats, p2Stats, logText;
     private ProgressBar expBar;
@@ -35,6 +39,7 @@ public class MainActivity extends AppCompatActivity {
     private View upgradeOverlay;
     private Button[] upgradeButtons = new Button[3];
     private Random random = new Random();
+    private Handler mainHandler = new Handler(Looper.getMainLooper());
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,30 +62,50 @@ public class MainActivity extends AppCompatActivity {
         initGame();
 
         btnMove.setOnClickListener(v -> {
+            if (isAnimating || getCurrentPlayer().hasMoved) return;
             isMoveMode = !isMoveMode;
             isAttackMode = false;
             drawBoard();
             if (isMoveMode) {
-                logText.setText("Select a square to move to (Range: " + getCurrentPlayer().movementModifier + ")");
-                highlightRange(getCurrentPlayer().x, getCurrentPlayer().y, getCurrentPlayer().movementModifier, Color.parseColor("#44AAFFAA"));
-            } else {
-                logText.setText("Movement cancelled.");
+                logText.setText("Move (HV only): " + getCurrentPlayer().movementModifier);
+                highlightMoveRange();
             }
         });
 
         btnAttack.setOnClickListener(v -> {
+            if (isAnimating || getCurrentPlayer().hasAttacked) return;
             isAttackMode = !isAttackMode;
             isMoveMode = false;
             drawBoard();
             if (isAttackMode) {
-                logText.setText("Select a target (Range: " + getCurrentPlayer().rangeModifier + ")");
-                highlightRange(getCurrentPlayer().x, getCurrentPlayer().y, getCurrentPlayer().rangeModifier, Color.parseColor("#44FFAAAA"));
-            } else {
-                logText.setText("Attack cancelled.");
+                logText.setText("Attack (HV+Diag): " + getCurrentPlayer().rangeModifier);
+                highlightAttackRange();
             }
         });
 
         updateUI();
+    }
+
+    private void highlightMoveRange() {
+        Player p = getCurrentPlayer();
+        for (int i = 0; i < GRID_SIZE; i++) {
+            for (int j = 0; j < GRID_SIZE; j++) {
+                if (GameRules.isValidPlayerMove(p.x, p.y, i, j, p.movementModifier)) {
+                    cells[i][j].setBackgroundColor(Color.parseColor("#44AAFFAA"));
+                }
+            }
+        }
+    }
+
+    private void highlightAttackRange() {
+        Player p = getCurrentPlayer();
+        for (int i = 0; i < GRID_SIZE; i++) {
+            for (int j = 0; j < GRID_SIZE; j++) {
+                if (GameRules.isValidPlayerAttack(p.x, p.y, i, j, p.rangeModifier)) {
+                    cells[i][j].setBackgroundColor(Color.parseColor("#44FFAAAA"));
+                }
+            }
+        }
     }
 
     private void setupGrid() {
@@ -112,12 +137,7 @@ public class MainActivity extends AppCompatActivity {
     private void initGame() {
         player1 = new Player(0, 4);
         player2 = new Player(9, 4);
-        
-        // Add more initial monsters
-        for (int i = 0; i < 8; i++) {
-            spawnMonster();
-        }
-        
+        for (int i = 0; i < 5; i++) spawnMonster();
         drawBoard();
     }
 
@@ -131,33 +151,37 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void handleCellClick(int r, int c) {
-        if (actionsLeft <= 0 || upgradeOverlay.getVisibility() == View.VISIBLE) return;
+        if (isAnimating || upgradeOverlay.getVisibility() == View.VISIBLE) return;
 
         Player p = getCurrentPlayer();
 
-        if (isMoveMode) {
-            int dist = Math.abs(p.x - r) + Math.abs(p.y - c);
-            if (dist <= p.movementModifier && dist > 0 && isEmpty(r, c)) {
-                p.x = r;
-                p.y = c;
-                useAction("Moved to " + r + "," + c);
+        if (isMoveMode && !p.hasMoved) {
+            if (GameRules.isValidPlayerMove(p.x, p.y, r, c, p.movementModifier) && isEmpty(r, c)) {
+                animatePlayerMove(p, r, c);
             } else {
                 Toast.makeText(this, "Invalid move!", Toast.LENGTH_SHORT).show();
             }
-        } else if (isAttackMode) {
-            int dist = Math.abs(p.x - r) + Math.abs(p.y - c);
-            if (dist <= p.rangeModifier) {
-                if (isMonsterAt(r, c)) {
-                    attackMonster(r, c);
-                } else if (isOpponentAt(r, c)) {
-                    attackOpponent();
-                } else {
-                    Toast.makeText(this, "No target there!", Toast.LENGTH_SHORT).show();
-                }
-            } else {
-                Toast.makeText(this, "Out of range!", Toast.LENGTH_SHORT).show();
+        } else if (isAttackMode && !p.hasAttacked) {
+            if (GameRules.isValidPlayerAttack(p.x, p.y, r, c, p.rangeModifier)) {
+                if (isMonsterAt(r, c)) attackMonster(r, c);
+                else if (isOpponentAt(r, c)) attackOpponent();
             }
         }
+    }
+
+    private void animatePlayerMove(Player p, int tr, int tc) {
+        isAnimating = true;
+        isMoveMode = false;
+        String tag = (currentPlayer == 1) ? "P1\n🔫" : "P2\n🔫";
+        int color = (currentPlayer == 1) ? Color.parseColor("#004466") : Color.parseColor("#660000");
+        
+        GridAnimationManager.animateStationaryToTarget(cells[p.x][p.y], cells[tr][tc], tag, color, () -> {
+            p.x = tr;
+            p.y = tc;
+            p.hasMoved = true;
+            isAnimating = false;
+            useAction("Moved!");
+        });
     }
 
     private void attackMonster(int r, int c) {
@@ -165,17 +189,18 @@ public class MainActivity extends AppCompatActivity {
         int roll = random.nextInt(6) + 1;
         int damage = roll + getCurrentPlayer().damageModifier;
         m.hp -= damage;
-        logText.setText("Rolled 🎲" + roll + "! Dealt " + damage + " DMG to Monster.");
+        getCurrentPlayer().hasAttacked = true;
         
+        Animation anim = new AlphaAnimation(1.0f, 0.0f);
+        anim.setDuration(200);
+        cells[r][c].startAnimation(anim);
+
         if (m.hp <= 0) {
             monsters.remove(m);
             getCurrentPlayer().exp += 3;
-            logText.append("\nMonster slain! +3 EXP");
-            if (getCurrentPlayer().canLevelUp()) {
-                showUpgradeOverlay();
-            }
+            if (getCurrentPlayer().canLevelUp()) showUpgradeOverlay();
         }
-        useAction("");
+        useAction("Shot for " + damage + " DMG!");
     }
 
     private void attackOpponent() {
@@ -183,25 +208,20 @@ public class MainActivity extends AppCompatActivity {
         int roll = random.nextInt(6) + 1;
         int damage = roll + getCurrentPlayer().damageModifier;
         target.hp -= damage;
-        logText.setText("Rolled 🎲" + roll + "! Shot Player " + (currentPlayer == 1 ? 2 : 1) + " for " + damage + " DMG!");
-        
+        getCurrentPlayer().hasAttacked = true;
+
         if (target.hp <= 0) {
             target.hp = 0;
-            updateUI();
-            Toast.makeText(this, "PLAYER " + currentPlayer + " IS THE SURVIVOR!", Toast.LENGTH_LONG).show();
             finish();
         }
-        useAction("");
+        useAction("Hit Player for " + damage + " DMG!");
     }
 
     private void showUpgradeOverlay() {
         upgradeOverlay.setVisibility(View.VISIBLE);
         List<String> options = new ArrayList<>();
-        options.add("DMG +2");
-        options.add("RANGE +1");
-        options.add("MOVE +1");
-        options.add("HEAL +10 HP");
-        options.add("MAX HP +5");
+        options.add("DMG +2"); options.add("RANGE +1"); options.add("MOVE +1");
+        options.add("HEAL +10 HP"); options.add("MAX HP +5");
         Collections.shuffle(options);
 
         for (int i = 0; i < 3; i++) {
@@ -225,17 +245,15 @@ public class MainActivity extends AppCompatActivity {
         else if (type.contains("MOVE")) p.movementModifier += 1;
         else if (type.contains("HEAL")) p.hp = Math.min(p.maxHp, p.hp + 10);
         else if (type.contains("MAX HP")) { p.maxHp += 5; p.hp += 5; }
-        Toast.makeText(this, "Upgraded: " + type, Toast.LENGTH_SHORT).show();
     }
 
     private void useAction(String msg) {
-        actionsLeft--;
         isMoveMode = false;
         isAttackMode = false;
-        if (!msg.isEmpty()) logText.setText(msg);
+        logText.setText(msg);
         
-        if (actionsLeft == 0) {
-            endTurn();
+        if (getCurrentPlayer().hasMoved && getCurrentPlayer().hasAttacked) {
+            mainHandler.postDelayed(this::endTurn, 400);
         } else {
             drawBoard();
             updateUI();
@@ -243,42 +261,48 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void endTurn() {
+        getCurrentPlayer().resetTurn();
         currentPlayer = (currentPlayer == 1) ? 2 : 1;
-        actionsLeft = 2;
         turnCounter++;
-        
-        moveMonsters();
-        
-        // Spawn a new monster every 2 turns
-        if (turnCounter % 2 == 0 && monsters.size() < 15) {
-            spawnMonster();
-        }
-        
-        drawBoard();
-        updateUI();
-        Toast.makeText(this, "Player " + currentPlayer + "'s Turn", Toast.LENGTH_SHORT).show();
+        moveMonstersAnimated();
     }
 
-    private void moveMonsters() {
-        for (Monster m : monsters) {
-            // Find nearest player
-            Player target = (getDist(m.x, m.y, player1.x, player1.y) < getDist(m.x, m.y, player2.x, player2.y)) ? player1 : player2;
-            
-            int dx = Integer.compare(target.x, m.x);
-            int dy = Integer.compare(target.y, m.y);
-            
-            int nx = m.x + dx;
-            int ny = m.y + dy;
+    private void moveMonstersAnimated() {
+        isAnimating = true;
+        animateNextMonster(0);
+    }
 
-            // Attack player if adjacent
-            if ((nx == player1.x && ny == player1.y) || (nx == player2.x && ny == player2.y)) {
-                Player hit = (nx == player1.x && ny == player1.y) ? player1 : player2;
-                hit.hp -= m.damage;
-                logText.setText("A Monster bit Player " + (hit == player1 ? 1 : 2) + " for " + m.damage + " DMG!");
-            } else if (isEmpty(nx, ny)) {
-                m.x = nx;
-                m.y = ny;
-            }
+    private void animateNextMonster(int index) {
+        if (index >= monsters.size()) {
+            if (turnCounter % 2 == 0 && monsters.size() < 12) spawnMonster();
+            isAnimating = false;
+            drawBoard();
+            updateUI();
+            return;
+        }
+
+        final Monster m = monsters.get(index);
+        Player target = (getDist(m.x, m.y, player1.x, player1.y) < getDist(m.x, m.y, player2.x, player2.y)) ? player1 : player2;
+        int[] next = GameRules.getMonsterMove(m.x, m.y, target.x, target.y);
+        
+        if (next[0] == target.x && next[1] == target.y) {
+            target.hp -= m.damage;
+            // Brief "bite" animation
+            Animation anim = new AlphaAnimation(1.0f, 0.4f);
+            anim.setDuration(200);
+            cells[m.x][m.y].startAnimation(anim);
+            mainHandler.postDelayed(() -> animateNextMonster(index + 1), 250);
+        } else if (isEmpty(next[0], next[1])) {
+            int oldX = m.x;
+            int oldY = m.y;
+            m.x = next[0];
+            m.y = next[1];
+            
+            GridAnimationManager.animateStationaryToTarget(cells[oldX][oldY], cells[m.x][m.y], "🧟\n" + m.hp, Color.parseColor("#224422"), () -> {
+                animateNextMonster(index + 1);
+            });
+        } else {
+            animateNextMonster(index + 1);
         }
     }
 
@@ -286,70 +310,45 @@ public class MainActivity extends AppCompatActivity {
         return Math.sqrt(Math.pow(x1-x2, 2) + Math.pow(y1-y2, 2));
     }
 
-    private void highlightRange(int cx, int cy, int range, int color) {
-        for (int i = 0; i < GRID_SIZE; i++) {
-            for (int j = 0; j < GRID_SIZE; j++) {
-                int dist = Math.abs(cx - i) + Math.abs(cy - j);
-                if (dist <= range && dist > 0) {
-                    cells[i][j].setBackgroundColor(color);
-                }
-            }
-        }
-    }
-
     private void updateUI() {
-        statusText.setText("Player " + currentPlayer + " Turn (" + actionsLeft + " actions)");
-        p1Stats.setText("P1 HP: " + player1.hp + "/" + player1.maxHp);
-        p2Stats.setText("P2 HP: " + player2.hp + "/" + player2.maxHp);
-        
-        expBar.setProgress(getCurrentPlayer().exp);
-        expBar.setProgressTintList(android.content.res.ColorStateList.valueOf(currentPlayer == 1 ? Color.CYAN : Color.RED));
+        Player p = getCurrentPlayer();
+        statusText.setText("Player " + currentPlayer + " Turn");
+        p1Stats.setText("P1 HP: " + player1.hp);
+        p2Stats.setText("P2 HP: " + player2.hp);
+        btnMove.setEnabled(!p.hasMoved && !isAnimating);
+        btnAttack.setEnabled(!p.hasAttacked && !isAnimating);
+        expBar.setProgress(p.exp);
     }
 
     private void drawBoard() {
+        if (isAnimating) return; // Don't redraw during animation sequence
         for (int i = 0; i < GRID_SIZE; i++) {
             for (int j = 0; j < GRID_SIZE; j++) {
                 cells[i][j].setText("");
                 cells[i][j].setBackgroundColor(Color.parseColor("#222222"));
-                cells[i][j].setAlpha(1.0f);
             }
         }
-
-        // Draw Player 1 (Gunner Blue)
         cells[player1.x][player1.y].setText("P1\n🔫");
         cells[player1.x][player1.y].setBackgroundColor(Color.parseColor("#004466"));
-        
-        // Draw Player 2 (Gunner Red)
         cells[player2.x][player2.y].setText("P2\n🔫");
         cells[player2.x][player2.y].setBackgroundColor(Color.parseColor("#660000"));
-
-        // Draw Monsters
         for (Monster m : monsters) {
             cells[m.x][m.y].setText("🧟\n" + m.hp);
             cells[m.x][m.y].setBackgroundColor(Color.parseColor("#224422"));
         }
     }
 
-    private Player getCurrentPlayer() {
-        return (currentPlayer == 1) ? player1 : player2;
-    }
-
+    private Player getCurrentPlayer() { return (currentPlayer == 1) ? player1 : player2; }
     private boolean isEmpty(int r, int c) {
-        if (player1.x == r && player1.y == c) return false;
-        if (player2.x == r && player2.y == c) return false;
+        if (player1.x == r && player1.y == c || player2.x == r && player2.y == c) return false;
         for (Monster m : monsters) if (m.x == r && m.y == c) return false;
         return true;
     }
-
-    private boolean isMonsterAt(int r, int c) {
-        return getMonsterAt(r, c) != null;
-    }
-
+    private boolean isMonsterAt(int r, int c) { return getMonsterAt(r, c) != null; }
     private Monster getMonsterAt(int r, int c) {
         for (Monster m : monsters) if (m.x == r && m.y == c) return m;
         return null;
     }
-
     private boolean isOpponentAt(int r, int c) {
         Player opp = (currentPlayer == 1) ? player2 : player1;
         return opp.x == r && opp.y == c;
