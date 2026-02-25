@@ -129,7 +129,7 @@ public class MainActivity extends AppCompatActivity {
                 params.height = cellSize;
                 params.setMargins(1, 1, 1, 1);
                 cell.setLayoutParams(params);
-                cell.setBackgroundColor(Color.parseColor("#1A1A1A")); // Slightly lighter than background
+                cell.setBackgroundColor(Color.parseColor("#1A1A1A"));
                 cell.setGravity(Gravity.CENTER);
                 cell.setTextSize(14);
                 
@@ -179,9 +179,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void animatePlayerMove(Player p, int tr, int tc) {
-        isMoveMode = false;
-        drawBoard(); // Clear selection tiles
+        clearHighlights();
         isAnimating = true;
+        isMoveMode = false;
         String tag = (currentPlayer == 1) ? "P1\n🔫" : "P2\n🔫";
         int color = (currentPlayer == 1) ? Color.parseColor("#004466") : Color.parseColor("#660000");
         
@@ -195,9 +195,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void attackMonster(int r, int c) {
-        isAttackMode = false;
-        drawBoard(); // Clear selection tiles
+        clearHighlights();
         isAnimating = true;
+        isAttackMode = false;
         Player p = getCurrentPlayer();
         Monster m = getMonsterAt(r, c);
 
@@ -218,9 +218,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void attackOpponent(int r, int c) {
-        isAttackMode = false;
-        drawBoard(); // Clear selection tiles
+        clearHighlights();
         isAnimating = true;
+        isAttackMode = false;
         Player p = getCurrentPlayer();
         Player target = (currentPlayer == 1) ? player2 : player1;
 
@@ -238,6 +238,23 @@ public class MainActivity extends AppCompatActivity {
             isAnimating = false;
             useAction("Hit Player for " + damage + " DMG!");
         });
+    }
+
+    private void clearHighlights() {
+        isMoveMode = false;
+        isAttackMode = false;
+        // Direct color reset to ensure highlights are gone immediately
+        for (int i = 0; i < GRID_SIZE; i++) {
+            for (int j = 0; j < GRID_SIZE; j++) {
+                cells[i][j].setBackgroundColor(Color.parseColor("#1A1A1A"));
+            }
+        }
+        // Redraw essential elements without highlights
+        cells[player1.x][player1.y].setBackgroundColor(Color.parseColor("#004466"));
+        cells[player2.x][player2.y].setBackgroundColor(Color.parseColor("#660000"));
+        for (Monster m : monsters) {
+            cells[m.x][m.y].setBackgroundColor(Color.parseColor("#224422"));
+        }
     }
 
     private void showUpgradeOverlay() {
@@ -271,12 +288,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void useAction(String msg) {
-        isMoveMode = false;
-        isAttackMode = false;
         logText.setText(msg);
-        
         if (getCurrentPlayer().hasMoved && getCurrentPlayer().hasAttacked) {
-            mainHandler.postDelayed(this::endTurn, 600); // Delayed transition
+            mainHandler.postDelayed(this::endTurn, 600);
         } else {
             drawBoard();
             updateUI();
@@ -285,6 +299,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void endTurn() {
         if (isAnimating) return;
+        clearHighlights();
         getCurrentPlayer().resetTurn();
         currentPlayer = (currentPlayer == 1) ? 2 : 1;
         turnCounter++;
@@ -310,7 +325,6 @@ public class MainActivity extends AppCompatActivity {
         
         if (next[0] == target.x && next[1] == target.y) {
             target.hp -= m.damage;
-            // Brief "bite" animation
             Animation anim = new AlphaAnimation(1.0f, 0.4f);
             anim.setDuration(250);
             cells[m.x][m.y].startAnimation(anim);
@@ -325,7 +339,8 @@ public class MainActivity extends AppCompatActivity {
                 animateNextMonster(index + 1);
             });
         } else {
-            animateNextMonster(index + 1);
+            // Monster is blocked, skip to next monster immediately but with a small delay for visual clarity
+            mainHandler.postDelayed(() -> animateNextMonster(index + 1), 50);
         }
     }
 
@@ -344,7 +359,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void drawBoard() {
-        if (isAnimating) return; // Don't redraw during animation sequence
+        if (isAnimating) return;
         for (int i = 0; i < GRID_SIZE; i++) {
             for (int j = 0; j < GRID_SIZE; j++) {
                 cells[i][j].setText("");

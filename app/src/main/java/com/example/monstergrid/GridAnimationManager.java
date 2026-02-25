@@ -17,6 +17,8 @@ public class GridAnimationManager {
         void onFinished();
     }
 
+    private static final String DEFAULT_CELL_COLOR = "#1A1A1A";
+
     /**
      * Animates a character moving from one cell to another.
      */
@@ -26,22 +28,29 @@ public class GridAnimationManager {
         float endX = targetCell.getX();
         float endY = targetCell.getY();
 
+        // Prepare target
         targetCell.setText(characterTag);
         targetCell.setBackgroundColor(targetBgColor);
+        targetCell.setAlpha(1.0f);
         
+        // Clear source
         sourceCell.setText("");
-        sourceCell.setBackgroundColor(Color.parseColor("#222222"));
+        sourceCell.setBackgroundColor(Color.parseColor(DEFAULT_CELL_COLOR));
 
+        // Set initial offset for animation
         targetCell.setTranslationX(startX - endX);
         targetCell.setTranslationY(startY - endY);
 
         targetCell.animate()
                 .translationX(0)
                 .translationY(0)
-                .setDuration(350) // Slightly longer for "smoothness"
+                .setDuration(400) // Smooth duration
                 .setInterpolator(new AccelerateDecelerateInterpolator())
-                .withEndAction(() -> {
-                    if (callback != null) callback.onFinished();
+                .setListener(new AnimatorListenerAdapter() {
+                    @Override
+                    public void onAnimationEnd(Animator animation) {
+                        if (callback != null) callback.onFinished();
+                    }
                 })
                 .start();
     }
@@ -50,14 +59,12 @@ public class GridAnimationManager {
      * Animates a projectile (bullet) from source to target.
      */
     public static void animateProjectile(View sourceCell, View targetCell, FrameLayout effectLayer, AnimationCallback callback) {
-        // Create bullet view
         View bullet = new View(sourceCell.getContext());
         int size = sourceCell.getWidth() / 4;
         bullet.setLayoutParams(new FrameLayout.LayoutParams(size, size));
         bullet.setBackgroundColor(Color.YELLOW);
         effectLayer.addView(bullet);
 
-        // Calculate positions relative to effectLayer
         int[] sourcePos = new int[2];
         int[] targetPos = new int[2];
         int[] layerPos = new int[2];
@@ -77,7 +84,7 @@ public class GridAnimationManager {
         bullet.animate()
                 .x(endX)
                 .y(endY)
-                .setDuration(200)
+                .setDuration(250)
                 .setInterpolator(new AccelerateInterpolator())
                 .setListener(new AnimatorListenerAdapter() {
                     @Override
@@ -91,10 +98,10 @@ public class GridAnimationManager {
 
     private static void showImpactEffect(View targetCell, FrameLayout effectLayer, AnimationCallback callback) {
         View impact = new View(targetCell.getContext());
-        int size = targetCell.getWidth();
+        int size = (int)(targetCell.getWidth() * 1.2);
         impact.setLayoutParams(new FrameLayout.LayoutParams(size, size));
         impact.setBackgroundColor(Color.WHITE);
-        impact.setAlpha(0.6f);
+        impact.setAlpha(0.8f);
         effectLayer.addView(impact);
 
         int[] targetPos = new int[2];
@@ -102,14 +109,14 @@ public class GridAnimationManager {
         targetCell.getLocationInWindow(targetPos);
         effectLayer.getLocationInWindow(layerPos);
 
-        impact.setX(targetPos[0] - layerPos[0]);
-        impact.setY(targetPos[1] - layerPos[1]);
+        impact.setX(targetPos[0] - layerPos[0] - (size - targetCell.getWidth())/2f);
+        impact.setY(targetPos[1] - layerPos[1] - (size - targetCell.getHeight())/2f);
 
         impact.animate()
-                .scaleX(1.5f)
-                .scaleY(1.5f)
+                .scaleX(1.8f)
+                .scaleY(1.8f)
                 .alpha(0f)
-                .setDuration(150)
+                .setDuration(200)
                 .setInterpolator(new DecelerateInterpolator())
                 .setListener(new AnimatorListenerAdapter() {
                     @Override
