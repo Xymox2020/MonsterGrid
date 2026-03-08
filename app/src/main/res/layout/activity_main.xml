@@ -261,4 +261,55 @@
         </LinearLayout>
     </FrameLayout>
 
+    <!-- Game Over Overlay -->
+    <FrameLayout
+        android:id="@+id/gameOverOverlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#CC000000"
+        android:visibility="gone"
+        android:elevation="200dp"
+        android:clickable="true"
+        android:focusable="true">
+
+        <LinearLayout
+            android:layout_width="320dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:orientation="vertical"
+            android:padding="32dp"
+            android:background="@drawable/glass_panel"
+            android:gravity="center">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="MISSION ENDED"
+                android:textColor="#FF5252"
+                android:textSize="28sp"
+                android:fontFamily="sans-serif-black"
+                android:letterSpacing="0.2"/>
+
+            <TextView
+                android:id="@+id/winnerName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="PLAYER 1 VICTORIOUS"
+                android:textColor="#FFFFFF"
+                android:textSize="18sp"
+                android:layout_marginTop="8dp"
+                android:fontFamily="sans-serif-condensed-medium"/>
+
+            <Button
+                android:id="@+id/btnRestart"
+                android:layout_width="match_parent"
+                android:layout_height="60dp"
+                android:layout_marginTop="32dp"
+                android:text="REINITIALIZE"
+                android:background="@drawable/button_move_bg"
+                android:textColor="#FFFFFF"
+                android:fontFamily="sans-serif-black"/>
+        </LinearLayout>
+    </FrameLayout>
+
 </RelativeLayout>

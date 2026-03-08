@@ -5,6 +5,7 @@ import android.animation.AnimatorListenerAdapter;
 import android.animation.ObjectAnimator;
 import android.animation.ValueAnimator;
 import android.graphics.Color;
+import android.graphics.Typeface;
 import android.view.Gravity;
 import android.view.View;
 import android.view.animation.AccelerateDecelerateInterpolator;
@@ -282,6 +283,44 @@ public class GridAnimationManager {
                     public void onAnimationEnd(Animator animation) {
                         effectLayer.removeView(impact);
                         if (callback != null) callback.onFinished();
+                    }
+                })
+                .start();
+    }
+
+    public static void showDamageIndicator(View targetCell, FrameLayout effectLayer, String text, int color) {
+        if (targetCell == null || effectLayer == null) return;
+
+        TextView damageText = new TextView(targetCell.getContext());
+        damageText.setText(text);
+        damageText.setTextColor(color);
+        damageText.setTextSize(20);
+        damageText.setTypeface(null, Typeface.BOLD);
+        damageText.setShadowLayer(4, 0, 0, Color.BLACK);
+        damageText.setGravity(Gravity.CENTER);
+
+        effectLayer.addView(damageText);
+
+        int[] targetPos = new int[2];
+        int[] layerPos = new int[2];
+        targetCell.getLocationInWindow(targetPos);
+        effectLayer.getLocationInWindow(layerPos);
+
+        float startX = targetPos[0] - layerPos[0] + (targetCell.getWidth() / 2f) - 50;
+        float startY = targetPos[1] - layerPos[1] + (targetCell.getHeight() / 2f) - 50;
+
+        damageText.setX(startX);
+        damageText.setY(startY);
+
+        damageText.animate()
+                .translationYBy(-100)
+                .alpha(0f)
+                .setDuration(800)
+                .setInterpolator(new DecelerateInterpolator())
+                .setListener(new AnimatorListenerAdapter() {
+                    @Override
+                    public void onAnimationEnd(Animator animation) {
+                        effectLayer.removeView(damageText);
                     }
                 })
                 .start();

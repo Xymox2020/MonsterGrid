@@ -11,7 +11,6 @@ import android.widget.FrameLayout;
 import android.widget.GridLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -33,10 +32,10 @@ public class MainActivity extends AppCompatActivity {
     private boolean isAttackMode = false;
     private boolean isAnimating = false;
 
-    private TextView statusText, p1Stats, p2Stats, logText;
+    private TextView statusText, p1Stats, p2Stats, logText, winnerName;
     private ProgressBar expBar;
-    private Button btnMove, btnAttack;
-    private View upgradeOverlay, mainRoot;
+    private Button btnMove, btnAttack, btnRestart;
+    private View upgradeOverlay, mainRoot, gameOverOverlay;
     private FrameLayout effectLayer;
     private Button[] upgradeButtons = new Button[3];
     private Random random = new Random();
@@ -57,6 +56,10 @@ public class MainActivity extends AppCompatActivity {
         btnAttack = findViewById(R.id.btnAction2);
         upgradeOverlay = findViewById(R.id.upgradeOverlay);
         effectLayer = findViewById(R.id.effectLayer);
+        gameOverOverlay = findViewById(R.id.gameOverOverlay);
+        winnerName = findViewById(R.id.winnerName);
+        btnRestart = findViewById(R.id.btnRestart);
+        
         upgradeButtons[0] = findViewById(R.id.upgrade1);
         upgradeButtons[1] = findViewById(R.id.upgrade2);
         upgradeButtons[2] = findViewById(R.id.upgrade3);
@@ -89,6 +92,10 @@ public class MainActivity extends AppCompatActivity {
         findViewById(R.id.btnEndTurn).setOnClickListener(v -> {
             if (isAnimating) return;
             endTurn();
+        });
+
+        btnRestart.setOnClickListener(v -> {
+            resetGame();
         });
 
         updateUI();
@@ -158,12 +165,24 @@ public class MainActivity extends AppCompatActivity {
     private void initGame() {
         player1 = new Player(0, 4);
         player2 = new Player(9, 4);
+        monsters.clear();
+        obstacles.clear();
+        currentPlayer = 1;
+        turnCounter = 0;
+        gameOverOverlay.setVisibility(View.GONE);
+        upgradeOverlay.setVisibility(View.GONE);
         
         // 8 Obstacles
         for (int i = 0; i < 8; i++) spawnObstacle();
         
         for (int i = 0; i < 8; i++) spawnMonster();
         drawBoard();
+        updateUI();
+    }
+
+    private void resetGame() {
+        initGame();
+        logText.setText("SYSTEMS REINITIALIZED");
     }
 
     private void spawnObstacle() {
@@ -189,7 +208,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void handleCellClick(int r, int c) {
-        if (isAnimating || upgradeOverlay.getVisibility() == View.VISIBLE) return;
+        if (isAnimating || upgradeOverlay.getVisibility() == View.VISIBLE || gameOverOverlay.getVisibility() == View.VISIBLE) return;
         Player p = getCurrentPlayer();
         if (isMoveMode && !p.hasMoved) {
             if (GameRules.isValidPlayerMove(p.x, p.y, r, c, p.movementModifier) && isEmpty(r, c) && isPathClear(p.x, p.y, r, c)) {
@@ -217,7 +236,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private boolean isShootThrough(int x, int y) {
-        // Can't shoot through or walk through obstacles, monsters, or other player
         for (Obstacle o : obstacles) if (o.x == x && o.y == y) return false;
         for (Monster m : monsters) if (m.x == x && m.y == y) return false;
         if (player1.x == x && player1.y == y) return false;
@@ -229,7 +247,7 @@ public class MainActivity extends AppCompatActivity {
         clearHighlights();
         isAnimating = true;
         isMoveMode = false;
-        String tag = (currentPlayer == 1) ? "P1\n🔫" : "P2\n🔫";
+        String tag = (currentPlayer == 1) ? "P1\n" + p.hp + "HP" : "P2\n" + p.hp + "HP";
         int color = (currentPlayer == 1) ? Color.parseColor("#004466") : Color.parseColor("#660000");
         
         int oldX = p.x, oldY = p.y;
@@ -255,6 +273,8 @@ public class MainActivity extends AppCompatActivity {
             int damage = (roll + p.damageModifier) * (isCrit ? 2 : 1);
             m.hp -= damage;
             p.hasAttacked = true;
+
+            GridAnimationManager.showDamageIndicator(cells[r][c], effectLayer, (isCrit ? "CRIT! " : "") + damage, Color.YELLOW);
 
             if (m.hp <= 0) {
                 monsters.remove(m);
@@ -286,16 +306,23 @@ public class MainActivity extends AppCompatActivity {
             target.hp -= damage;
             p.hasAttacked = true;
 
+            GridAnimationManager.showDamageIndicator(cells[r][c], effectLayer, (isCrit ? "CRIT! " : "") + damage, Color.RED);
             updateUI();
+            
             if (target.hp <= 0) {
                 target.hp = 0;
-                Toast.makeText(this, "GAME OVER!", Toast.LENGTH_LONG).show();
-                finish();
+                showGameOver("PLAYER " + currentPlayer + " VICTORIOUS");
             }
+            
             isAnimating = false;
             String msg = (isCrit ? "CRIT! " : "") + "Hit Player for " + damage + " DMG!";
             useAction(msg);
         });
+    }
+
+    private void showGameOver(String message) {
+        winnerName.setText(message);
+        gameOverOverlay.setVisibility(View.VISIBLE);
     }
 
     private void clearHighlights() {
@@ -359,7 +386,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void endTurn() {
-        if (isAnimating) return;
+        if (isAnimating || (gameOverOverlay != null && gameOverOverlay.getVisibility() == View.VISIBLE)) return;
         clearHighlights();
         getCurrentPlayer().resetTurn();
         currentPlayer = (currentPlayer == 1) ? 2 : 1;
@@ -374,7 +401,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void processMonsterSequence(int index) {
-        if (index >= monsters.size()) {
+        if (index >= monsters.size() || (gameOverOverlay != null && gameOverOverlay.getVisibility() == View.VISIBLE)) {
             isAnimating = false;
             drawBoard();
             updateUI();
@@ -391,7 +418,17 @@ public class MainActivity extends AppCompatActivity {
                 GridAnimationManager.animateMeleeAttack(cells[m.x][m.y], cells[target.x][target.y], () -> {
                     int damage = Math.max(0, m.damage - target.armor);
                     target.hp -= damage;
+                    GridAnimationManager.showDamageIndicator(cells[target.x][target.y], effectLayer, "" + damage, Color.RED);
                     updateUI();
+                    
+                    if (target.hp <= 0) {
+                        target.hp = 0;
+                        int winner = (target == player1) ? 2 : 1;
+                        showGameOver("PLAYER " + winner + " VICTORIOUS");
+                        isAnimating = false;
+                        return;
+                    }
+                    
                     processMonsterSequence(index + 1);
                 });
             } else {
@@ -402,7 +439,6 @@ public class MainActivity extends AppCompatActivity {
                 });
             }
         } else {
-            // No path found, monster stays put
             processMonsterSequence(index + 1);
         }
     }
@@ -416,8 +452,8 @@ public class MainActivity extends AppCompatActivity {
         statusText.setText("Player " + currentPlayer + " Turn");
         p1Stats.setText("P1 HP: " + player1.hp + (player1.armor > 0 ? " (🛡️" + player1.armor + ")" : ""));
         p2Stats.setText("P2 HP: " + player2.hp + (player2.armor > 0 ? " (🛡️" + player2.armor + ")" : ""));
-        btnMove.setEnabled(!p.hasMoved && !isAnimating);
-        btnAttack.setEnabled(!p.hasAttacked && !isAnimating);
+        btnMove.setEnabled(!p.hasMoved && !isAnimating && (gameOverOverlay == null || gameOverOverlay.getVisibility() == View.GONE));
+        btnAttack.setEnabled(!p.hasAttacked && !isAnimating && (gameOverOverlay == null || gameOverOverlay.getVisibility() == View.GONE));
         expBar.setProgress(p.exp);
 
         if (currentPlayer == 1) {
@@ -426,7 +462,7 @@ public class MainActivity extends AppCompatActivity {
             mainRoot.setBackgroundResource(R.drawable.gradient_player2);
         }
 
-        if (!isAnimating) {
+        if (!isAnimating && (gameOverOverlay == null || gameOverOverlay.getVisibility() == View.GONE)) {
             GridAnimationManager.updateTurnIndicator(cells[p.x][p.y], effectLayer);
         }
     }
@@ -442,9 +478,9 @@ public class MainActivity extends AppCompatActivity {
                 cells[i][j].setAlpha(1.0f);
             }
         }
-        cells[player1.x][player1.y].setText("P1\n🔫");
+        cells[player1.x][player1.y].setText("P1\n" + player1.hp + "HP");
         cells[player1.x][player1.y].setBackgroundColor(Color.parseColor("#004466"));
-        cells[player2.x][player2.y].setText("P2\n🔫");
+        cells[player2.x][player2.y].setText("P2\n" + player2.hp + "HP");
         cells[player2.x][player2.y].setBackgroundColor(Color.parseColor("#660000"));
         for (Monster m : monsters) {
             cells[m.x][m.y].setText("🧟\n" + m.hp);
@@ -464,14 +500,19 @@ public class MainActivity extends AppCompatActivity {
         for (Obstacle o : obstacles) if (o.x == r && o.y == c) return false;
         return true;
     }
-    
-    private boolean isMonsterAt(int r, int c) { return getMonsterAt(r, c) != null; }
+
+    private boolean isMonsterAt(int r, int c) {
+        for (Monster m : monsters) if (m.x == r && m.y == c) return true;
+        return false;
+    }
+
     private Monster getMonsterAt(int r, int c) {
         for (Monster m : monsters) if (m.x == r && m.y == c) return m;
         return null;
     }
+
     private boolean isOpponentAt(int r, int c) {
-        Player opp = (currentPlayer == 1) ? player2 : player1;
-        return opp.x == r && opp.y == c;
+        Player target = (currentPlayer == 1) ? player2 : player1;
+        return target.x == r && target.y == c;
     }
 }
