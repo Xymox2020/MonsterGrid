@@ -261,7 +261,7 @@ public class MainActivity extends AppCompatActivity {
                 cells[r][c].setText("");
                 cells[r][c].setBackgroundColor(Color.parseColor("#1A1A1A"));
                 p.exp += 3;
-                if (p.canLevelUp()) showUpgradeOverlay();
+                if (p.canLevelUp()) showUpgradeOverlay(p);
             } else {
                 cells[r][c].setText("🧟\n" + m.hp);
             }
@@ -314,7 +314,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void showUpgradeOverlay() {
+    private void showUpgradeOverlay(Player p) {
         upgradeOverlay.setVisibility(View.VISIBLE);
         List<String> options = new ArrayList<>();
         options.add("DMG +2"); 
@@ -329,18 +329,17 @@ public class MainActivity extends AppCompatActivity {
             final String choice = options.get(i);
             upgradeButtons[i].setText(choice);
             upgradeButtons[i].setOnClickListener(v -> {
-                applyUpgrade(choice);
+                applyUpgrade(p, choice);
                 upgradeOverlay.setVisibility(View.GONE);
-                getCurrentPlayer().exp -= 6;
-                getCurrentPlayer().level++;
+                p.exp -= 6;
+                p.level++;
                 updateUI();
                 drawBoard();
             });
         }
     }
 
-    private void applyUpgrade(String type) {
-        Player p = getCurrentPlayer();
+    private void applyUpgrade(Player p, String type) {
         if (type.contains("DMG")) p.damageModifier += 2;
         else if (type.contains("RANGE")) p.rangeModifier += 1;
         else if (type.contains("MOVE")) p.movementModifier += 1;
