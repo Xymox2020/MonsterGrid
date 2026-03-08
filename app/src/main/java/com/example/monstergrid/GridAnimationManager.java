@@ -29,7 +29,7 @@ public class GridAnimationManager {
      * Animates a character moving from one cell to another.
      * Also animates the turn indicator in sync if it is currently visible.
      */
-    public static void animateStationaryToTarget(TextView sourceCell, TextView targetCell, String characterTag, int targetBgColor, FrameLayout effectLayer, AnimationCallback callback) {
+    public static void animateStationaryToTarget(TextView sourceCell, TextView targetCell, String characterTag, int targetBgColor, float textSize, FrameLayout effectLayer, AnimationCallback callback) {
         sourceCell.animate().cancel();
         sourceCell.setTranslationX(0);
         sourceCell.setTranslationY(0);
@@ -51,6 +51,7 @@ public class GridAnimationManager {
         float diffY = sourcePos[1] - targetPos[1];
 
         targetCell.setText(characterTag);
+        targetCell.setTextSize(textSize);
         targetCell.setBackgroundColor(targetBgColor);
         targetCell.setTranslationX(diffX);
         targetCell.setTranslationY(diffY);

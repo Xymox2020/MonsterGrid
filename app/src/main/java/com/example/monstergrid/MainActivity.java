@@ -146,7 +146,7 @@ public class MainActivity extends AppCompatActivity {
                 cell.setLayoutParams(params);
                 cell.setBackgroundColor(Color.parseColor("#1A1A1A"));
                 cell.setGravity(Gravity.CENTER);
-                cell.setTextSize(10); // Smaller text for grid
+                cell.setTextSize(10); 
                 cell.setTextColor(Color.WHITE);
                 cell.setIncludeFontPadding(false);
                 
@@ -249,7 +249,7 @@ public class MainActivity extends AppCompatActivity {
         int oldX = p.x, oldY = p.y;
         p.x = tr; p.y = tc;
 
-        GridAnimationManager.animateStationaryToTarget(cells[oldX][oldY], cells[tr][tc], tag, color, effectLayer, () -> {
+        GridAnimationManager.animateStationaryToTarget(cells[oldX][oldY], cells[tr][tc], tag, color, 10, effectLayer, () -> {
             p.hasMoved = true;
             isAnimating = false;
             useAction("Moved!");
@@ -280,6 +280,7 @@ public class MainActivity extends AppCompatActivity {
                 if (p.canLevelUp()) showUpgradeOverlay(p);
             } else {
                 cells[r][c].setText("🧟\n" + m.hp);
+                cells[r][c].setTextSize(14);
             }
 
             isAnimating = false;
@@ -428,7 +429,7 @@ public class MainActivity extends AppCompatActivity {
             } else {
                 int oldX = m.x, oldY = m.y;
                 m.x = next[0]; m.y = next[1];
-                GridAnimationManager.animateStationaryToTarget(cells[oldX][oldY], cells[m.x][m.y], "🧟\n" + m.hp, Color.parseColor("#224422"), effectLayer, () -> {
+                GridAnimationManager.animateStationaryToTarget(cells[oldX][oldY], cells[m.x][m.y], "🧟\n" + m.hp, Color.parseColor("#224422"), 14, effectLayer, () -> {
                     processMonsterSequence(index + 1);
                 });
             }
@@ -472,15 +473,22 @@ public class MainActivity extends AppCompatActivity {
                 cells[i][j].setAlpha(1.0f);
             }
         }
+        
+        cells[player1.x][player1.y].setTextSize(10);
         cells[player1.x][player1.y].setText("P1\n" + player1.hp);
         cells[player1.x][player1.y].setBackgroundColor(Color.parseColor("#004466"));
+        
+        cells[player2.x][player2.y].setTextSize(10);
         cells[player2.x][player2.y].setText("P2\n" + player2.hp);
         cells[player2.x][player2.y].setBackgroundColor(Color.parseColor("#660000"));
+        
         for (Monster m : monsters) {
+            cells[m.x][m.y].setTextSize(14);
             cells[m.x][m.y].setText("🧟\n" + m.hp);
             cells[m.x][m.y].setBackgroundColor(Color.parseColor("#224422"));
         }
         for (Obstacle o : obstacles) {
+            cells[o.x][o.y].setTextSize(18);
             cells[o.x][o.y].setText("🗿");
             cells[o.x][o.y].setBackgroundColor(Color.parseColor("#444444"));
         }
