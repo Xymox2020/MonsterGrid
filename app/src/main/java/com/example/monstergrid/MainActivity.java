@@ -384,22 +384,26 @@ public class MainActivity extends AppCompatActivity {
 
         final Monster m = monsters.get(index);
         Player target = (getDist(m.x, m.y, player1.x, player1.y) < getDist(m.x, m.y, player2.x, player2.y)) ? player1 : player2;
-        int[] next = GameRules.getMonsterMove(m.x, m.y, target.x, target.y);
         
-        if (next[0] == target.x && next[1] == target.y) {
-            GridAnimationManager.animateMeleeAttack(cells[m.x][m.y], cells[target.x][target.y], () -> {
-                int damage = Math.max(0, m.damage - target.armor);
-                target.hp -= damage;
-                updateUI();
-                processMonsterSequence(index + 1);
-            });
-        } else if (isEmpty(next[0], next[1])) {
-            int oldX = m.x, oldY = m.y;
-            m.x = next[0]; m.y = next[1];
-            GridAnimationManager.animateStationaryToTarget(cells[oldX][oldY], cells[m.x][m.y], "🧟\n" + m.hp, Color.parseColor("#224422"), effectLayer, () -> {
-                processMonsterSequence(index + 1);
-            });
+        int[] next = PathFinder.getNextStep(m.x, m.y, target.x, target.y, GRID_SIZE, obstacles, monsters, player1, player2);
+        
+        if (next != null) {
+            if (next[0] == target.x && next[1] == target.y) {
+                GridAnimationManager.animateMeleeAttack(cells[m.x][m.y], cells[target.x][target.y], () -> {
+                    int damage = Math.max(0, m.damage - target.armor);
+                    target.hp -= damage;
+                    updateUI();
+                    processMonsterSequence(index + 1);
+                });
+            } else {
+                int oldX = m.x, oldY = m.y;
+                m.x = next[0]; m.y = next[1];
+                GridAnimationManager.animateStationaryToTarget(cells[oldX][oldY], cells[m.x][m.y], "🧟\n" + m.hp, Color.parseColor("#224422"), effectLayer, () -> {
+                    processMonsterSequence(index + 1);
+                });
+            }
         } else {
+            // No path found, monster stays put
             processMonsterSequence(index + 1);
         }
     }
