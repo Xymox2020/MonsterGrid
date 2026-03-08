@@ -6,7 +6,6 @@ import android.os.Handler;
 import android.os.Looper;
 import android.view.Gravity;
 import android.view.View;
-import android.view.animation.AnticipateOvershootInterpolator;
 import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.GridLayout;
@@ -27,6 +26,7 @@ public class MainActivity extends AppCompatActivity {
     private TextView[][] cells = new TextView[GRID_SIZE][GRID_SIZE];
     private Player player1, player2;
     private List<Monster> monsters = new ArrayList<>();
+    private List<Obstacle> obstacles = new ArrayList<>();
     private int currentPlayer = 1;
     private int turnCounter = 0;
     private boolean isMoveMode = false;
@@ -98,7 +98,7 @@ public class MainActivity extends AppCompatActivity {
         Player p = getCurrentPlayer();
         for (int i = 0; i < GRID_SIZE; i++) {
             for (int j = 0; j < GRID_SIZE; j++) {
-                if (GameRules.isValidPlayerMove(p.x, p.y, i, j, p.movementModifier)) {
+                if (GameRules.isValidPlayerMove(p.x, p.y, i, j, p.movementModifier) && isEmpty(i, j) && isPathClear(p.x, p.y, i, j)) {
                     cells[i][j].setBackgroundColor(Color.parseColor("#44AAFFAA"));
                 }
             }
@@ -109,7 +109,7 @@ public class MainActivity extends AppCompatActivity {
         Player p = getCurrentPlayer();
         for (int i = 0; i < GRID_SIZE; i++) {
             for (int j = 0; j < GRID_SIZE; j++) {
-                if (GameRules.isValidPlayerAttack(p.x, p.y, i, j, p.rangeModifier)) {
+                if (GameRules.isValidPlayerAttack(p.x, p.y, i, j, p.rangeModifier) && isPathClear(p.x, p.y, i, j)) {
                     cells[i][j].setBackgroundColor(Color.parseColor("#44FFAAAA"));
                 }
             }
@@ -158,8 +158,25 @@ public class MainActivity extends AppCompatActivity {
     private void initGame() {
         player1 = new Player(0, 4);
         player2 = new Player(9, 4);
+        
+        // 8 Obstacles
+        for (int i = 0; i < 8; i++) spawnObstacle();
+        
         for (int i = 0; i < 8; i++) spawnMonster();
         drawBoard();
+    }
+
+    private void spawnObstacle() {
+        int rx, ry;
+        do {
+            rx = random.nextInt(GRID_SIZE);
+            ry = random.nextInt(GRID_SIZE);
+        } while (!isEmpty(rx, ry) || isAtStart(rx, ry));
+        obstacles.add(new Obstacle(rx, ry));
+    }
+
+    private boolean isAtStart(int x, int y) {
+        return (Math.abs(x - 0) < 2 && Math.abs(y - 4) < 2) || (Math.abs(x - 9) < 2 && Math.abs(y - 4) < 2);
     }
 
     private void spawnMonster() {
@@ -175,15 +192,37 @@ public class MainActivity extends AppCompatActivity {
         if (isAnimating || upgradeOverlay.getVisibility() == View.VISIBLE) return;
         Player p = getCurrentPlayer();
         if (isMoveMode && !p.hasMoved) {
-            if (GameRules.isValidPlayerMove(p.x, p.y, r, c, p.movementModifier) && isEmpty(r, c)) {
+            if (GameRules.isValidPlayerMove(p.x, p.y, r, c, p.movementModifier) && isEmpty(r, c) && isPathClear(p.x, p.y, r, c)) {
                 animatePlayerMove(p, r, c);
             }
         } else if (isAttackMode && !p.hasAttacked) {
-            if (GameRules.isValidPlayerAttack(p.x, p.y, r, c, p.rangeModifier)) {
+            if (GameRules.isValidPlayerAttack(p.x, p.y, r, c, p.rangeModifier) && isPathClear(p.x, p.y, r, c)) {
                 if (isMonsterAt(r, c)) attackMonster(r, c);
                 else if (isOpponentAt(r, c)) attackOpponent(r, c);
             }
         }
+    }
+
+    private boolean isPathClear(int x1, int y1, int x2, int y2) {
+        int dx = Integer.compare(x2, x1);
+        int dy = Integer.compare(y2, y1);
+        int x = x1 + dx;
+        int y = y1 + dy;
+        while (x != x2 || y != y2) {
+            if (!isShootThrough(x, y)) return false;
+            x += dx;
+            y += dy;
+        }
+        return true;
+    }
+
+    private boolean isShootThrough(int x, int y) {
+        // Can't shoot through or walk through obstacles, monsters, or other player
+        for (Obstacle o : obstacles) if (o.x == x && o.y == y) return false;
+        for (Monster m : monsters) if (m.x == x && m.y == y) return false;
+        if (player1.x == x && player1.y == y) return false;
+        if (player2.x == x && player2.y == y) return false;
+        return true;
     }
 
     private void animatePlayerMove(Player p, int tr, int tc) {
@@ -194,7 +233,7 @@ public class MainActivity extends AppCompatActivity {
         int color = (currentPlayer == 1) ? Color.parseColor("#004466") : Color.parseColor("#660000");
         
         int oldX = p.x, oldY = p.y;
-        p.x = tr; p.y = tc; // Update logical position immediately
+        p.x = tr; p.y = tc;
 
         GridAnimationManager.animateStationaryToTarget(cells[oldX][oldY], cells[tr][tc], tag, color, effectLayer, () -> {
             p.hasMoved = true;
@@ -217,7 +256,6 @@ public class MainActivity extends AppCompatActivity {
             m.hp -= damage;
             p.hasAttacked = true;
 
-            // Update cell text immediately after impact
             if (m.hp <= 0) {
                 monsters.remove(m);
                 cells[r][c].setText("");
@@ -270,6 +308,9 @@ public class MainActivity extends AppCompatActivity {
         cells[player2.x][player2.y].setBackgroundColor(Color.parseColor("#660000"));
         for (Monster m : monsters) {
             cells[m.x][m.y].setBackgroundColor(Color.parseColor("#224422"));
+        }
+        for (Obstacle o : obstacles) {
+            cells[o.x][o.y].setBackgroundColor(Color.parseColor("#444444"));
         }
     }
 
@@ -346,7 +387,6 @@ public class MainActivity extends AppCompatActivity {
         int[] next = GameRules.getMonsterMove(m.x, m.y, target.x, target.y);
         
         if (next[0] == target.x && next[1] == target.y) {
-            // Zombie attacks!
             GridAnimationManager.animateMeleeAttack(cells[m.x][m.y], cells[target.x][target.y], () -> {
                 int damage = Math.max(0, m.damage - target.armor);
                 target.hp -= damage;
@@ -377,14 +417,12 @@ public class MainActivity extends AppCompatActivity {
         btnAttack.setEnabled(!p.hasAttacked && !isAnimating);
         expBar.setProgress(p.exp);
 
-        // Update Background Gradient
         if (currentPlayer == 1) {
             mainRoot.setBackgroundResource(R.drawable.gradient_player1);
         } else {
             mainRoot.setBackgroundResource(R.drawable.gradient_player2);
         }
 
-        // Update Turn Indicator
         if (!isAnimating) {
             GridAnimationManager.updateTurnIndicator(cells[p.x][p.y], effectLayer);
         }
@@ -409,14 +447,21 @@ public class MainActivity extends AppCompatActivity {
             cells[m.x][m.y].setText("🧟\n" + m.hp);
             cells[m.x][m.y].setBackgroundColor(Color.parseColor("#224422"));
         }
+        for (Obstacle o : obstacles) {
+            cells[o.x][o.y].setText("🗿");
+            cells[o.x][o.y].setBackgroundColor(Color.parseColor("#444444"));
+        }
     }
 
     private Player getCurrentPlayer() { return (currentPlayer == 1) ? player1 : player2; }
+    
     private boolean isEmpty(int r, int c) {
         if (player1.x == r && player1.y == c || player2.x == r && player2.y == c) return false;
         for (Monster m : monsters) if (m.x == r && m.y == c) return false;
+        for (Obstacle o : obstacles) if (o.x == r && o.y == c) return false;
         return true;
     }
+    
     private boolean isMonsterAt(int r, int c) { return getMonsterAt(r, c) != null; }
     private Monster getMonsterAt(int r, int c) {
         for (Monster m : monsters) if (m.x == r && m.y == c) return m;
