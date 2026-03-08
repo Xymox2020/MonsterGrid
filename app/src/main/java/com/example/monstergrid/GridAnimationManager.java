@@ -8,6 +8,7 @@ import android.graphics.Color;
 import android.graphics.Typeface;
 import android.view.Gravity;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.animation.AccelerateDecelerateInterpolator;
 import android.view.animation.AccelerateInterpolator;
 import android.view.animation.DecelerateInterpolator;
@@ -109,7 +110,7 @@ public class GridAnimationManager {
         
         if (turnIndicatorContainer.getParent() != effectLayer) {
             if (turnIndicatorContainer.getParent() != null) {
-                ((FrameLayout) turnIndicatorContainer.getParent()).removeView(turnIndicatorContainer);
+                ((ViewGroup) turnIndicatorContainer.getParent()).removeView(turnIndicatorContainer);
             }
             effectLayer.addView(turnIndicatorContainer);
         }
@@ -291,14 +292,19 @@ public class GridAnimationManager {
     public static void showDamageIndicator(View targetCell, FrameLayout effectLayer, String text, int color) {
         if (targetCell == null || effectLayer == null) return;
 
-        TextView damageText = new TextView(targetCell.getContext());
+        final TextView damageText = new TextView(targetCell.getContext());
         damageText.setText(text);
         damageText.setTextColor(color);
-        damageText.setTextSize(20);
-        damageText.setTypeface(null, Typeface.BOLD);
-        damageText.setShadowLayer(4, 0, 0, Color.BLACK);
+        damageText.setTextSize(18);
+        damageText.setTypeface(Typeface.DEFAULT_BOLD);
+        damageText.setShadowLayer(4, 2, 2, Color.BLACK);
         damageText.setGravity(Gravity.CENTER);
 
+        FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.WRAP_CONTENT, 
+                ViewGroup.LayoutParams.WRAP_CONTENT
+        );
+        damageText.setLayoutParams(lp);
         effectLayer.addView(damageText);
 
         int[] targetPos = new int[2];
@@ -306,23 +312,25 @@ public class GridAnimationManager {
         targetCell.getLocationInWindow(targetPos);
         effectLayer.getLocationInWindow(layerPos);
 
-        float startX = targetPos[0] - layerPos[0] + (targetCell.getWidth() / 2f) - 50;
-        float startY = targetPos[1] - layerPos[1] + (targetCell.getHeight() / 2f) - 50;
+        damageText.post(() -> {
+            float startX = targetPos[0] - layerPos[0] + (targetCell.getWidth() / 2f) - (damageText.getWidth() / 2f);
+            float startY = targetPos[1] - layerPos[1] + (targetCell.getHeight() / 2f) - (damageText.getHeight() / 2f);
 
-        damageText.setX(startX);
-        damageText.setY(startY);
+            damageText.setX(startX);
+            damageText.setY(startY);
 
-        damageText.animate()
-                .translationYBy(-100)
-                .alpha(0f)
-                .setDuration(800)
-                .setInterpolator(new DecelerateInterpolator())
-                .setListener(new AnimatorListenerAdapter() {
-                    @Override
-                    public void onAnimationEnd(Animator animation) {
-                        effectLayer.removeView(damageText);
-                    }
-                })
-                .start();
+            damageText.animate()
+                    .translationYBy(-120)
+                    .alpha(0f)
+                    .setDuration(1000)
+                    .setInterpolator(new DecelerateInterpolator())
+                    .setListener(new AnimatorListenerAdapter() {
+                        @Override
+                        public void onAnimationEnd(Animator animation) {
+                            effectLayer.removeView(damageText);
+                        }
+                    })
+                    .start();
+        });
     }
 }

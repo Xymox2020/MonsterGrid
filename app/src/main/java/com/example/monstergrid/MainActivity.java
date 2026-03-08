@@ -34,7 +34,7 @@ public class MainActivity extends AppCompatActivity {
 
     private TextView statusText, p1Stats, p2Stats, logText, winnerName;
     private ProgressBar expBar;
-    private Button btnMove, btnAttack, btnRestart;
+    private Button btnMove, btnAttack;
     private View upgradeOverlay, mainRoot, gameOverOverlay;
     private FrameLayout effectLayer;
     private Button[] upgradeButtons = new Button[3];
@@ -58,7 +58,6 @@ public class MainActivity extends AppCompatActivity {
         effectLayer = findViewById(R.id.effectLayer);
         gameOverOverlay = findViewById(R.id.gameOverOverlay);
         winnerName = findViewById(R.id.winnerName);
-        btnRestart = findViewById(R.id.btnRestart);
         
         upgradeButtons[0] = findViewById(R.id.upgrade1);
         upgradeButtons[1] = findViewById(R.id.upgrade2);
@@ -73,7 +72,7 @@ public class MainActivity extends AppCompatActivity {
             isAttackMode = false;
             drawBoard();
             if (isMoveMode) {
-                logText.setText("Move (HV only): " + getCurrentPlayer().movementModifier);
+                logText.setText("Move range: " + getCurrentPlayer().movementModifier);
                 highlightMoveRange();
             }
         });
@@ -84,7 +83,7 @@ public class MainActivity extends AppCompatActivity {
             isMoveMode = false;
             drawBoard();
             if (isAttackMode) {
-                logText.setText("Attack (HV+Diag): " + getCurrentPlayer().rangeModifier);
+                logText.setText("Attack range: " + getCurrentPlayer().rangeModifier);
                 highlightAttackRange();
             }
         });
@@ -94,7 +93,7 @@ public class MainActivity extends AppCompatActivity {
             endTurn();
         });
 
-        btnRestart.setOnClickListener(v -> {
+        gameOverOverlay.setOnClickListener(v -> {
             resetGame();
         });
 
@@ -147,10 +146,9 @@ public class MainActivity extends AppCompatActivity {
                 cell.setLayoutParams(params);
                 cell.setBackgroundColor(Color.parseColor("#1A1A1A"));
                 cell.setGravity(Gravity.CENTER);
-                cell.setTextSize(14);
+                cell.setTextSize(10); // Smaller text for grid
                 cell.setTextColor(Color.WHITE);
                 cell.setIncludeFontPadding(false);
-                cell.setLineSpacing(0, 0.9f);
                 
                 final int row = i;
                 final int col = j;
@@ -172,9 +170,7 @@ public class MainActivity extends AppCompatActivity {
         gameOverOverlay.setVisibility(View.GONE);
         upgradeOverlay.setVisibility(View.GONE);
         
-        // 8 Obstacles
         for (int i = 0; i < 8; i++) spawnObstacle();
-        
         for (int i = 0; i < 8; i++) spawnMonster();
         drawBoard();
         updateUI();
@@ -247,7 +243,7 @@ public class MainActivity extends AppCompatActivity {
         clearHighlights();
         isAnimating = true;
         isMoveMode = false;
-        String tag = (currentPlayer == 1) ? "P1\n" + p.hp + "HP" : "P2\n" + p.hp + "HP";
+        String tag = (currentPlayer == 1) ? "P1\n" + p.hp : "P2\n" + p.hp;
         int color = (currentPlayer == 1) ? Color.parseColor("#004466") : Color.parseColor("#660000");
         
         int oldX = p.x, oldY = p.y;
@@ -274,7 +270,7 @@ public class MainActivity extends AppCompatActivity {
             m.hp -= damage;
             p.hasAttacked = true;
 
-            GridAnimationManager.showDamageIndicator(cells[r][c], effectLayer, (isCrit ? "CRIT! " : "") + damage, Color.YELLOW);
+            GridAnimationManager.showDamageIndicator(cells[r][c], effectLayer, (isCrit ? "CRIT! " : "") + "-" + damage, Color.YELLOW);
 
             if (m.hp <= 0) {
                 monsters.remove(m);
@@ -287,8 +283,7 @@ public class MainActivity extends AppCompatActivity {
             }
 
             isAnimating = false;
-            String msg = (isCrit ? "CRIT! " : "") + "Shot for " + damage + " DMG!";
-            useAction(msg);
+            useAction("Shot for " + damage + " DMG!");
         });
     }
 
@@ -306,7 +301,7 @@ public class MainActivity extends AppCompatActivity {
             target.hp -= damage;
             p.hasAttacked = true;
 
-            GridAnimationManager.showDamageIndicator(cells[r][c], effectLayer, (isCrit ? "CRIT! " : "") + damage, Color.RED);
+            GridAnimationManager.showDamageIndicator(cells[r][c], effectLayer, (isCrit ? "CRIT! " : "") + "-" + damage, Color.RED);
             updateUI();
             
             if (target.hp <= 0) {
@@ -315,8 +310,7 @@ public class MainActivity extends AppCompatActivity {
             }
             
             isAnimating = false;
-            String msg = (isCrit ? "CRIT! " : "") + "Hit Player for " + damage + " DMG!";
-            useAction(msg);
+            useAction("Hit Player for " + damage + " DMG!");
         });
     }
 
@@ -418,7 +412,7 @@ public class MainActivity extends AppCompatActivity {
                 GridAnimationManager.animateMeleeAttack(cells[m.x][m.y], cells[target.x][target.y], () -> {
                     int damage = Math.max(0, m.damage - target.armor);
                     target.hp -= damage;
-                    GridAnimationManager.showDamageIndicator(cells[target.x][target.y], effectLayer, "" + damage, Color.RED);
+                    GridAnimationManager.showDamageIndicator(cells[target.x][target.y], effectLayer, "-" + damage, Color.RED);
                     updateUI();
                     
                     if (target.hp <= 0) {
@@ -478,9 +472,9 @@ public class MainActivity extends AppCompatActivity {
                 cells[i][j].setAlpha(1.0f);
             }
         }
-        cells[player1.x][player1.y].setText("P1\n" + player1.hp + "HP");
+        cells[player1.x][player1.y].setText("P1\n" + player1.hp);
         cells[player1.x][player1.y].setBackgroundColor(Color.parseColor("#004466"));
-        cells[player2.x][player2.y].setText("P2\n" + player2.hp + "HP");
+        cells[player2.x][player2.y].setText("P2\n" + player2.hp);
         cells[player2.x][player2.y].setBackgroundColor(Color.parseColor("#660000"));
         for (Monster m : monsters) {
             cells[m.x][m.y].setText("🧟\n" + m.hp);
