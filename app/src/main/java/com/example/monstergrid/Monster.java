@@ -10,7 +10,7 @@ public class Monster {
     public Monster(int x, int y, int level) {
         this.x = x;
         this.y = y;
-        this.maxHp = 6 + (level * 2);
+        this.maxHp = 6 + level;
         this.hp = maxHp;
         this.damage = 1 + (level / 2);
     }

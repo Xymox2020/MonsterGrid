@@ -22,6 +22,7 @@ import java.util.Random;
 public class MainActivity extends AppCompatActivity {
 
     private static final int GRID_SIZE = 10;
+    private static final int MIN_MONSTERS = 4;
     private TextView[][] cells = new TextView[GRID_SIZE][GRID_SIZE];
     private Player player1, player2;
     private List<Monster> monsters = new ArrayList<>();
@@ -171,7 +172,7 @@ public class MainActivity extends AppCompatActivity {
         upgradeOverlay.setVisibility(View.GONE);
         
         for (int i = 0; i < 8; i++) spawnObstacle();
-        for (int i = 0; i < 8; i++) spawnMonster();
+        for (int i = 0; i < 6; i++) spawnMonster();
         drawBoard();
         updateUI();
     }
@@ -192,6 +193,12 @@ public class MainActivity extends AppCompatActivity {
 
     private boolean isAtStart(int x, int y) {
         return (Math.abs(x - 0) < 2 && Math.abs(y - 4) < 2) || (Math.abs(x - 9) < 2 && Math.abs(y - 4) < 2);
+    }
+
+    private void maintainMonsterCount() {
+        while (monsters.size() < MIN_MONSTERS) {
+            spawnMonster();
+        }
     }
 
     private void spawnMonster() {
@@ -277,6 +284,7 @@ public class MainActivity extends AppCompatActivity {
                 cells[r][c].setText("");
                 cells[r][c].setBackgroundColor(Color.parseColor("#1A1A1A"));
                 p.exp += 3;
+                maintainMonsterCount();
                 if (p.canLevelUp()) showUpgradeOverlay(p);
             } else {
                 cells[r][c].setText("🧟\n" + m.hp);
