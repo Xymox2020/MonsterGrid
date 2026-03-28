@@ -28,8 +28,10 @@ public class MainActivity extends AppCompatActivity {
     private List<Player> players = new ArrayList<>();
     private List<Monster> monsters = new ArrayList<>();
     private List<Obstacle> obstacles = new ArrayList<>();
+    private List<Collectable> collectables = new ArrayList<>();
     private int currentPlayerIndex = 0; // 0-indexed
     private int turnCounter = 0;
+    private int totalTurnsCounter = 0;
     private boolean isMoveMode = false;
     private boolean isAttackMode = false;
     private boolean isAnimating = false;
@@ -131,7 +133,7 @@ public class MainActivity extends AppCompatActivity {
         Player p = getCurrentPlayer();
         for (int i = 0; i < gridSize; i++) {
             for (int j = 0; j < gridSize; j++) {
-                if (GameRules.isValidPlayerMove(p.x, p.y, i, j, p.movementModifier) && isEmpty(i, j) && isPathClear(p.x, p.y, i, j)) {
+                if (GameRules.isValidPlayerMove(p.x, p.y, i, j, p.movementModifier) && (isEmpty(i, j) || isCollectableAt(i, j)) && isPathClear(p.x, p.y, i, j)) {
                     cells[i][j].setBackgroundColor(Color.parseColor("#44AAFFAA"));
                 }
             }
@@ -206,8 +208,10 @@ public class MainActivity extends AppCompatActivity {
 
         monsters.clear();
         obstacles.clear();
+        collectables.clear();
         currentPlayerIndex = 0;
         turnCounter = 0;
+        totalTurnsCounter = 0;
         nextSpawnQuadrantIndex = 0;
         gameOverOverlay.setVisibility(View.GONE);
         upgradeOverlay.setVisibility(View.GONE);
@@ -327,7 +331,7 @@ public class MainActivity extends AppCompatActivity {
         if (isAnimating || upgradeOverlay.getVisibility() == View.VISIBLE || gameOverOverlay.getVisibility() == View.VISIBLE) return;
         Player p = getCurrentPlayer();
         if (isMoveMode && !p.hasMoved) {
-            if (GameRules.isValidPlayerMove(p.x, p.y, r, c, p.movementModifier) && isEmpty(r, c) && isPathClear(p.x, p.y, r, c)) {
+            if (GameRules.isValidPlayerMove(p.x, p.y, r, c, p.movementModifier) && (isEmpty(r, c) || isCollectableAt(r, c)) && isPathClear(p.x, p.y, r, c)) {
                 animatePlayerMove(p, r, c);
             }
         } else if (isAttackMode && !p.hasAttacked) {
@@ -373,8 +377,25 @@ public class MainActivity extends AppCompatActivity {
                 (numPlayers > 2 ? 8 : 10), effectLayer, () -> {
             p.hasMoved = true;
             isAnimating = false;
-            useAction("Moved!");
+            
+            Collectable col = getCollectableAt(tr, tc);
+            if (col != null) {
+                handleCollectable(p, col);
+            } else {
+                useAction("Moved!");
+            }
         });
+    }
+
+    private void handleCollectable(Player p, Collectable col) {
+        collectables.remove(col);
+        if (col.type == Collectable.TYPE_LOOT) {
+            logText.setText("Loot Package Found!");
+            showUpgradeOverlay(p);
+        } else {
+            p.hp = Math.min(p.maxHp, p.hp + 5);
+            useAction("Picked Berry! +5 HP");
+        }
     }
 
     private String getPlayerTag(int index, int hp) {
@@ -515,6 +536,9 @@ public class MainActivity extends AppCompatActivity {
         for (Obstacle o : obstacles) {
             cells[o.x][o.y].setBackgroundResource(o.type == 0 ? R.drawable.obstacle_rock : R.drawable.obstacle_tree);
         }
+        for (Collectable c : collectables) {
+            cells[c.x][c.y].setBackgroundColor(c.type == Collectable.TYPE_LOOT ? Color.parseColor("#4400FFFF") : Color.parseColor("#44FF00FF"));
+        }
     }
 
     private void showUpgradeOverlay(Player p) {
@@ -534,7 +558,7 @@ public class MainActivity extends AppCompatActivity {
             upgradeButtons[i].setOnClickListener(v -> {
                 applyUpgrade(p, choice);
                 upgradeOverlay.setVisibility(View.GONE);
-                p.exp -= 6;
+                if (p.exp >= 6) p.exp -= 6;
                 p.level++;
                 updateUI();
                 drawBoard();
@@ -571,7 +595,11 @@ public class MainActivity extends AppCompatActivity {
             currentPlayerIndex = (currentPlayerIndex + 1) % players.size();
         } while (players.get(currentPlayerIndex).hp <= 0);
         
-        turnCounter++;
+        totalTurnsCounter++;
+        if (totalTurnsCounter % numPlayers == 0) {
+            turnCounter++;
+            checkPeriodicSpawns();
+        }
 
         int mid = numPlayers / 2;
         boolean crossMid = (prevIndex < mid && currentPlayerIndex >= mid);
@@ -582,6 +610,61 @@ public class MainActivity extends AppCompatActivity {
         } else {
             drawBoard();
             updateUI();
+        }
+    }
+
+    private void checkPeriodicSpawns() {
+        if (turnCounter > 0 && turnCounter % 4 == 0) {
+            spawnLootPackage();
+        }
+        if (turnCounter > 0 && turnCounter % 3 == 0) {
+            spawnBerryBush();
+        }
+    }
+
+    private void spawnLootPackage() {
+        Player behind = null;
+        int minUpgrades = Integer.MAX_VALUE;
+        for (Player p : players) {
+            if (p.hp > 0) {
+                int score = p.level * 2 + p.exp;
+                if (score < minUpgrades) {
+                    minUpgrades = score;
+                    behind = p;
+                }
+            }
+        }
+
+        int qIdx = (behind != null) ? getPlayerQuadrant(behind) : random.nextInt(4);
+        spawnCollectableInQuadrant(qIdx, Collectable.TYPE_LOOT);
+    }
+
+    private void spawnBerryBush() {
+        spawnCollectableInQuadrant(random.nextInt(4), Collectable.TYPE_BERRY);
+    }
+
+    private void spawnCollectableInQuadrant(int qIdx, int type) {
+        int rx, ry;
+        int attempts = 0;
+        int startX = (qIdx < 2) ? 0 : gridSize / 2;
+        int startY = (qIdx % 2 == 0) ? 0 : gridSize / 2;
+        
+        do {
+            rx = startX + random.nextInt(gridSize / 2);
+            ry = startY + random.nextInt(gridSize / 2);
+            attempts++;
+        } while (!isEmpty(rx, ry) && attempts < 50);
+        
+        if (attempts < 50) {
+            collectables.add(new Collectable(rx, ry, type));
+        }
+    }
+
+    private int getPlayerQuadrant(Player p) {
+        if (p.x < gridSize / 2) {
+            return (p.y < gridSize / 2) ? 0 : 1;
+        } else {
+            return (p.y < gridSize / 2) ? 2 : 3;
         }
     }
 
@@ -722,6 +805,10 @@ public class MainActivity extends AppCompatActivity {
             cells[o.x][o.y].setText("");
             cells[o.x][o.y].setBackgroundResource(o.type == 0 ? R.drawable.obstacle_rock : R.drawable.obstacle_tree);
         }
+        for (Collectable c : collectables) {
+            cells[c.x][c.y].setText(c.type == Collectable.TYPE_LOOT ? "🎁" : "🍓");
+            cells[c.x][c.y].setTextSize(18);
+        }
     }
 
     private Player getCurrentPlayer() { return players.get(currentPlayerIndex); }
@@ -754,6 +841,16 @@ public class MainActivity extends AppCompatActivity {
 
     private Player getPlayerAt(int r, int c) {
         for (Player p : players) if (p.hp > 0 && p.x == r && p.y == c) return p;
+        return null;
+    }
+
+    private boolean isCollectableAt(int r, int c) {
+        for (Collectable cl : collectables) if (cl.x == r && cl.y == c) return true;
+        return false;
+    }
+
+    private Collectable getCollectableAt(int r, int c) {
+        for (Collectable cl : collectables) if (cl.x == r && cl.y == c) return cl;
         return null;
     }
 }
