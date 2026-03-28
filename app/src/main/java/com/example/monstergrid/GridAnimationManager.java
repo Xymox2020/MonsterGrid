@@ -6,6 +6,7 @@ import android.animation.ObjectAnimator;
 import android.animation.ValueAnimator;
 import android.graphics.Color;
 import android.graphics.Typeface;
+import android.graphics.drawable.Drawable;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
@@ -30,6 +31,10 @@ public class GridAnimationManager {
      * Also animates the turn indicator in sync if it is currently visible.
      */
     public static void animateStationaryToTarget(TextView sourceCell, TextView targetCell, String characterTag, int targetBgColor, float textSize, FrameLayout effectLayer, AnimationCallback callback) {
+        animateStationaryToTarget(sourceCell, targetCell, characterTag, targetBgColor, null, textSize, effectLayer, callback);
+    }
+
+    public static void animateStationaryToTarget(TextView sourceCell, TextView targetCell, String characterTag, int targetBgColor, Drawable targetBgDrawable, float textSize, FrameLayout effectLayer, AnimationCallback callback) {
         sourceCell.animate().cancel();
         sourceCell.setTranslationX(0);
         sourceCell.setTranslationY(0);
@@ -52,12 +57,18 @@ public class GridAnimationManager {
 
         targetCell.setText(characterTag);
         targetCell.setTextSize(textSize);
-        targetCell.setBackgroundColor(targetBgColor);
+        if (targetBgDrawable != null) {
+            targetCell.setBackground(targetBgDrawable);
+        } else {
+            targetCell.setBackgroundResource(0);
+            targetCell.setBackgroundColor(targetBgColor);
+        }
         targetCell.setTranslationX(diffX);
         targetCell.setTranslationY(diffY);
         targetCell.setAlpha(1.0f);
         
         sourceCell.setText("");
+        sourceCell.setBackgroundResource(0);
         sourceCell.setBackgroundColor(Color.parseColor(DEFAULT_CELL_COLOR));
 
         targetCell.bringToFront();

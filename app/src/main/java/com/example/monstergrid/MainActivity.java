@@ -13,6 +13,7 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -361,17 +362,30 @@ public class MainActivity extends AppCompatActivity {
         clearHighlights();
         isAnimating = true;
         isMoveMode = false;
-        String tag = "P" + (currentPlayerIndex + 1) + "\n" + p.hp;
+        String tag = getPlayerTag(currentPlayerIndex, p.hp);
         int color = getPlayerColor(currentPlayerIndex);
         
         int oldX = p.x, oldY = p.y;
         p.x = tr; p.y = tc;
 
-        GridAnimationManager.animateStationaryToTarget(cells[oldX][oldY], cells[tr][tc], tag, color, (numPlayers > 2 ? 8 : 10), effectLayer, () -> {
+        GridAnimationManager.animateStationaryToTarget(cells[oldX][oldY], cells[tr][tc], tag, color, 
+                ContextCompat.getDrawable(this, getPlayerBackgroundResource(currentPlayerIndex)),
+                (numPlayers > 2 ? 8 : 10), effectLayer, () -> {
             p.hasMoved = true;
             isAnimating = false;
             useAction("Moved!");
         });
+    }
+
+    private String getPlayerTag(int index, int hp) {
+        String icon = "";
+        switch (index) {
+            case 0: icon = "👨‍🚀"; break;
+            case 1: icon = "👮"; break;
+            case 2: icon = "👷"; break;
+            case 3: icon = "🦸"; break;
+        }
+        return icon + "\n" + hp;
     }
 
     private int getPlayerColor(int index) {
@@ -381,6 +395,16 @@ public class MainActivity extends AppCompatActivity {
             case 2: return Color.parseColor("#006600");
             case 3: return Color.parseColor("#666600");
             default: return Color.GRAY;
+        }
+    }
+
+    private int getPlayerBackgroundResource(int index) {
+        switch (index) {
+            case 0: return R.drawable.player_1_bg;
+            case 1: return R.drawable.player_2_bg;
+            case 2: return R.drawable.player_3_bg;
+            case 3: return R.drawable.player_4_bg;
+            default: return 0;
         }
     }
 
@@ -404,6 +428,7 @@ public class MainActivity extends AppCompatActivity {
                 monsters.remove(m);
                 cells[r][c].setText("");
                 cells[r][c].setBackgroundColor(Color.parseColor("#1A1A1A"));
+                cells[r][c].setBackgroundResource(0);
                 p.exp += 3;
                 maintainMonsterCount();
                 if (p.canLevelUp()) showUpgradeOverlay(p);
@@ -474,11 +499,15 @@ public class MainActivity extends AppCompatActivity {
         for (int i = 0; i < gridSize; i++) {
             for (int j = 0; j < gridSize; j++) {
                 cells[i][j].setBackgroundColor(Color.parseColor("#1A1A1A"));
+                cells[i][j].setBackgroundResource(0);
+                cells[i][j].setBackgroundColor(Color.parseColor("#1A1A1A"));
             }
         }
         for (int i = 0; i < players.size(); i++) {
             Player p = players.get(i);
-            if (p.hp > 0) cells[p.x][p.y].setBackgroundColor(getPlayerColor(i));
+            if (p.hp > 0) {
+                cells[p.x][p.y].setBackgroundResource(getPlayerBackgroundResource(i));
+            }
         }
         for (Monster m : monsters) {
             cells[m.x][m.y].setBackgroundColor(Color.parseColor("#224422"));
@@ -679,8 +708,8 @@ public class MainActivity extends AppCompatActivity {
             Player p = players.get(i);
             if (p.hp > 0) {
                 cells[p.x][p.y].setTextSize(numPlayers > 2 ? 8 : 10);
-                cells[p.x][p.y].setText("P" + (i + 1) + "\n" + p.hp);
-                cells[p.x][p.y].setBackgroundColor(getPlayerColor(i));
+                cells[p.x][p.y].setText(getPlayerTag(i, p.hp));
+                cells[p.x][p.y].setBackgroundResource(getPlayerBackgroundResource(i));
             }
         }
         
