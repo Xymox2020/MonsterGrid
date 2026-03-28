@@ -37,6 +37,8 @@ public class MainActivity extends AppCompatActivity {
     private boolean isAnimating = false;
     private int numPlayers = 2;
     private int nextSpawnQuadrantIndex = 0;
+    private int totalMonstersSpawned = 0;
+    private int monstersInitiallySpawned = 0;
 
     private TextView statusText, logText, winnerName;
     private TextView[] playerStatsTexts = new TextView[4];
@@ -213,6 +215,7 @@ public class MainActivity extends AppCompatActivity {
         turnCounter = 0;
         totalTurnsCounter = 0;
         nextSpawnQuadrantIndex = 0;
+        totalMonstersSpawned = 0;
         gameOverOverlay.setVisibility(View.GONE);
         upgradeOverlay.setVisibility(View.GONE);
         
@@ -239,6 +242,7 @@ public class MainActivity extends AppCompatActivity {
             minMonsters = 8;
             initialMonsterCount = 12;
         }
+        monstersInitiallySpawned = initialMonsterCount;
 
         for (int i = 0; i < obstacleCount; i++) {
             spawnObstacleInQuadrant(i % 4);
@@ -323,7 +327,15 @@ public class MainActivity extends AppCompatActivity {
         } while ((!isEmpty(rx, ry) || tooClose) && attempts < 100);
         
         if (attempts < 100) {
-            monsters.add(new Monster(rx, ry, turnCounter / (numPlayers * 2)));
+            int level;
+            if (totalMonstersSpawned < monstersInitiallySpawned) {
+                level = 0;
+            } else {
+                int numNew = totalMonstersSpawned - monstersInitiallySpawned;
+                level = 1 + (numNew / numPlayers);
+            }
+            monsters.add(new Monster(rx, ry, level));
+            totalMonstersSpawned++;
         }
     }
 
