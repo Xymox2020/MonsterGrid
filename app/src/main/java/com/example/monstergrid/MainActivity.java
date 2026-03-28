@@ -302,9 +302,9 @@ public class MainActivity extends AppCompatActivity {
             ry = startY + random.nextInt(rangeY);
             
             tooClose = false;
-            // Check if too close to ANY player, but specifically avoid target player's start
+            // Check if too close to ANY player (min 3 tiles distance)
             for (Player pl : players) {
-                if (pl.hp > 0 && Math.abs(rx - pl.x) < 2 && Math.abs(ry - pl.y) < 2) {
+                if (pl.hp > 0 && Math.abs(rx - pl.x) < 3 && Math.abs(ry - pl.y) < 3) {
                     tooClose = true;
                     break;
                 }
@@ -316,7 +316,7 @@ public class MainActivity extends AppCompatActivity {
                 ry = random.nextInt(gridSize);
                 tooClose = false;
                 for (Player pl : players) {
-                    if (pl.hp > 0 && Math.abs(rx - pl.x) < 2 && Math.abs(ry - pl.y) < 2) {
+                    if (pl.hp > 0 && Math.abs(rx - pl.x) < 3 && Math.abs(ry - pl.y) < 3) {
                         tooClose = true;
                         break;
                     }
@@ -462,12 +462,19 @@ public class MainActivity extends AppCompatActivity {
         }
         if (aliveCount <= 1) {
             showGameOver("PLAYER " + (winnerIdx + 1) + " VICTORIOUS");
+        } else if (players.get(currentPlayerIndex).hp <= 0) {
+            // Current player is dead, skip to next alive player
+            do {
+                currentPlayerIndex = (currentPlayerIndex + 1) % players.size();
+            } while (players.get(currentPlayerIndex).hp <= 0);
+            updateUI();
         }
     }
 
     private void showGameOver(String message) {
         winnerName.setText(message);
         gameOverOverlay.setVisibility(View.VISIBLE);
+        GridAnimationManager.hideTurnIndicator();
     }
 
     private void clearHighlights() {
@@ -597,7 +604,6 @@ public class MainActivity extends AppCompatActivity {
                     int damage = Math.max(0, m.damage - finalTarget.armor);
                     finalTarget.hp -= damage;
                     GridAnimationManager.showDamageIndicator(cells[finalTarget.x][finalTarget.y], effectLayer, "-" + damage, Color.RED);
-                    updateUI();
                     
                     if (finalTarget.hp <= 0) {
                         finalTarget.hp = 0;
@@ -608,6 +614,7 @@ public class MainActivity extends AppCompatActivity {
                         }
                     }
                     
+                    updateUI();
                     processMonsterSequence(index + 1);
                 });
             } else {
@@ -627,6 +634,11 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void updateUI() {
+        if (gameOverOverlay != null && gameOverOverlay.getVisibility() == View.VISIBLE) {
+            GridAnimationManager.hideTurnIndicator();
+            return;
+        }
+
         Player p = getCurrentPlayer();
         statusText.setText("Player " + (currentPlayerIndex + 1) + " Turn");
         for (int i = 0; i < numPlayers; i++) {
@@ -634,14 +646,16 @@ public class MainActivity extends AppCompatActivity {
             playerStatsTexts[i].setText("P" + (i+1) + " HP: " + pl.hp + (pl.armor > 0 ? " (🛡️" + pl.armor + ")" : ""));
         }
         
-        btnMove.setEnabled(!p.hasMoved && !isAnimating && (gameOverOverlay == null || gameOverOverlay.getVisibility() == View.GONE));
-        btnAttack.setEnabled(!p.hasAttacked && !isAnimating && (gameOverOverlay == null || gameOverOverlay.getVisibility() == View.GONE));
+        btnMove.setEnabled(p.hp > 0 && !p.hasMoved && !isAnimating && (gameOverOverlay == null || gameOverOverlay.getVisibility() == View.GONE));
+        btnAttack.setEnabled(p.hp > 0 && !p.hasAttacked && !isAnimating && (gameOverOverlay == null || gameOverOverlay.getVisibility() == View.GONE));
         expBar.setProgress(p.exp);
 
         updateBackground(currentPlayerIndex);
 
-        if (!isAnimating && (gameOverOverlay == null || gameOverOverlay.getVisibility() == View.GONE)) {
+        if (!isAnimating && (gameOverOverlay == null || gameOverOverlay.getVisibility() == View.GONE) && p.hp > 0) {
             GridAnimationManager.updateTurnIndicator(cells[p.x][p.y], effectLayer);
+        } else {
+            GridAnimationManager.hideTurnIndicator();
         }
     }
 
