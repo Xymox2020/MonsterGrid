@@ -511,12 +511,18 @@ public class MainActivity extends AppCompatActivity {
         clearHighlights();
         getCurrentPlayer().resetTurn();
         
+        int prevIndex = currentPlayerIndex;
         do {
             currentPlayerIndex = (currentPlayerIndex + 1) % players.size();
         } while (players.get(currentPlayerIndex).hp <= 0);
         
         turnCounter++;
-        if (currentPlayerIndex == 0) {
+
+        int mid = numPlayers / 2;
+        boolean crossMid = (prevIndex < mid && currentPlayerIndex >= mid);
+        boolean crossEnd = (currentPlayerIndex < prevIndex);
+
+        if (crossMid || crossEnd) {
             moveMonstersAnimated();
         } else {
             drawBoard();
