@@ -222,14 +222,24 @@ public class MainActivity extends AppCompatActivity {
         }
 
         int obstacleCount = (int) (gridSize * gridSize * 0.08);
-        int monsterCount = (int) (gridSize * gridSize * 0.06);
+        int initialMonsterCount;
         
-        if (numPlayers == 3) minMonsters = 6;
-        else if (numPlayers == 4) minMonsters = 8;
-        else minMonsters = 3;
+        if (numPlayers == 2) {
+            minMonsters = 4;
+            initialMonsterCount = 6;
+        } else if (numPlayers == 3) {
+            minMonsters = 6;
+            initialMonsterCount = 9;
+        } else {
+            minMonsters = 8;
+            initialMonsterCount = 12;
+        }
 
-        for (int i = 0; i < obstacleCount; i++) spawnObstacle();
-        for (int i = 0; i < Math.max(monsterCount, minMonsters); i++) {
+        for (int i = 0; i < obstacleCount; i++) {
+            spawnObstacleNearPlayer(i % numPlayers);
+        }
+        
+        for (int i = 0; i < initialMonsterCount; i++) {
             spawnMonsterNearPlayer(i % numPlayers);
         }
         
@@ -237,13 +247,29 @@ public class MainActivity extends AppCompatActivity {
         updateUI();
     }
 
-    private void spawnObstacle() {
+    private void spawnObstacleNearPlayer(int pIdx) {
+        Player p = players.get(pIdx);
         int rx, ry;
+        int attempts = 0;
         do {
-            rx = random.nextInt(gridSize);
-            ry = random.nextInt(gridSize);
-        } while (!isEmpty(rx, ry) || isAtStart(rx, ry));
-        obstacles.add(new Obstacle(rx, ry));
+            int rangeX = gridSize / 2;
+            int rangeY = gridSize / 2;
+            int startX = (p.x < gridSize / 2) ? 0 : gridSize / 2;
+            int startY = (p.y < gridSize / 2) ? 0 : gridSize / 2;
+            
+            rx = startX + random.nextInt(rangeX);
+            ry = startY + random.nextInt(rangeY);
+            
+            attempts++;
+            if (attempts > 50) {
+                rx = random.nextInt(gridSize);
+                ry = random.nextInt(gridSize);
+            }
+        } while ((!isEmpty(rx, ry) || isAtStart(rx, ry)) && attempts < 100);
+        
+        if (attempts < 100) {
+            obstacles.add(new Obstacle(rx, ry));
+        }
     }
 
     private boolean isAtStart(int x, int y) {
