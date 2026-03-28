@@ -15,7 +15,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="16dp"
+        android:padding="12dp"
         android:layout_margin="12dp"
         android:background="@drawable/glass_panel"
         android:elevation="8dp">
@@ -26,7 +26,7 @@
             android:layout_height="wrap_content"
             android:text="PLAYER 1 TURN"
             android:textColor="#FFFFFF"
-            android:textSize="22sp"
+            android:textSize="20sp"
             android:fontFamily="sans-serif-condensed-medium"
             android:letterSpacing="0.15"
             android:gravity="center"
@@ -36,14 +36,14 @@
             android:layout_width="80dp"
             android:layout_height="2dp"
             android:layout_gravity="center"
-            android:layout_marginTop="6dp"
+            android:layout_marginTop="4dp"
             android:background="#4DFFFFFF"/>
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:layout_marginTop="16dp">
+            android:layout_marginTop="8dp">
 
             <LinearLayout
                 android:layout_width="0dp"
@@ -58,15 +58,7 @@
                     android:text="P1: 20 HP"
                     android:textColor="#4FC3F7"
                     android:fontFamily="sans-serif-condensed"
-                    android:textSize="18sp"/>
-                <TextView
-                    android:id="@+id/p1Level"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="LVL 1"
-                    android:textColor="#B3E5FC"
-                    android:fontFamily="sans-serif-light"
-                    android:textSize="14sp"/>
+                    android:textSize="12sp"/>
             </LinearLayout>
 
             <View
@@ -87,15 +79,57 @@
                     android:text="P2: 20 HP"
                     android:textColor="#E57373"
                     android:fontFamily="sans-serif-condensed"
-                    android:textSize="18sp"/>
+                    android:textSize="12sp"/>
+            </LinearLayout>
+
+            <View
+                android:id="@+id/dividerP3"
+                android:layout_width="1dp"
+                android:layout_height="match_parent"
+                android:background="#33FFFFFF"
+                android:visibility="gone"/>
+
+            <LinearLayout
+                android:id="@+id/p3Container"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:gravity="center"
+                android:visibility="gone">
                 <TextView
-                    android:id="@+id/p2Level"
+                    android:id="@+id/p3Stats"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="LVL 1"
-                    android:textColor="#FFCDD2"
-                     android:fontFamily="sans-serif-light"
-                    android:textSize="14sp"/>
+                    android:text="P3: 20 HP"
+                    android:textColor="#81C784"
+                    android:fontFamily="sans-serif-condensed"
+                    android:textSize="12sp"/>
+            </LinearLayout>
+
+            <View
+                android:id="@+id/dividerP4"
+                android:layout_width="1dp"
+                android:layout_height="match_parent"
+                android:background="#33FFFFFF"
+                android:visibility="gone"/>
+
+            <LinearLayout
+                android:id="@+id/p4Container"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:gravity="center"
+                android:visibility="gone">
+                <TextView
+                    android:id="@+id/p4Stats"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="P4: 20 HP"
+                    android:textColor="#FFF176"
+                    android:fontFamily="sans-serif-condensed"
+                    android:textSize="12sp"/>
             </LinearLayout>
         </LinearLayout>
 
@@ -103,8 +137,8 @@
             android:id="@+id/expBar"
             style="?android:attr/progressBarStyleHorizontal"
             android:layout_width="match_parent"
-            android:layout_height="8dp"
-            android:layout_marginTop="16dp"
+            android:layout_height="4dp"
+            android:layout_marginTop="8dp"
             android:max="6"
             android:progress="0"
             android:progressDrawable="@drawable/custom_progress_bar"/>
@@ -224,6 +258,42 @@
         android:translationZ="80dp"
         android:clickable="false"
         android:focusable="false"/>
+
+    <!-- Player Selection Overlay -->
+    <FrameLayout
+        android:id="@+id/selectionOverlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#E60A0B10"
+        android:visibility="visible"
+        android:elevation="150dp"
+        android:clickable="true"
+        android:focusable="true">
+
+        <LinearLayout
+            android:layout_width="320dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:orientation="vertical"
+            android:padding="24dp"
+            android:background="@drawable/glass_panel">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="SELECT PLAYERS"
+                android:textColor="#FFFFFF"
+                android:textSize="24sp"
+                android:fontFamily="sans-serif-condensed-medium"
+                android:letterSpacing="0.1"
+                android:gravity="center"
+                android:layout_marginBottom="24dp"/>
+
+            <Button android:id="@+id/btn2Players" style="@style/Widget.MaterialComponents.Button.OutlinedButton" android:layout_width="match_parent" android:layout_height="64dp" android:text="2 PLAYERS" android:textColor="#FFFFFF" android:layout_marginBottom="12dp" app:strokeColor="#4DFFFFFF" android:fontFamily="sans-serif-condensed"/>
+            <Button android:id="@+id/btn3Players" style="@style/Widget.MaterialComponents.Button.OutlinedButton" android:layout_width="match_parent" android:layout_height="64dp" android:text="3 PLAYERS" android:textColor="#FFFFFF" android:layout_marginBottom="12dp" app:strokeColor="#4DFFFFFF" android:fontFamily="sans-serif-condensed"/>
+            <Button android:id="@+id/btn4Players" style="@style/Widget.MaterialComponents.Button.OutlinedButton" android:layout_width="match_parent" android:layout_height="64dp" android:text="4 PLAYERS" android:textColor="#FFFFFF" app:strokeColor="#4DFFFFFF" android:fontFamily="sans-serif-condensed"/>
+        </LinearLayout>
+    </FrameLayout>
 
     <!-- Futuristic Upgrade Overlay -->
     <FrameLayout
