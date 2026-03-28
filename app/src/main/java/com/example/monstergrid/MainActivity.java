@@ -408,7 +408,7 @@ public class MainActivity extends AppCompatActivity {
                 maintainMonsterCount();
                 if (p.canLevelUp()) showUpgradeOverlay(p);
             } else {
-                cells[r][c].setText("🧟\n" + m.hp);
+                cells[r][c].setText("🐉\n" + m.hp);
                 cells[r][c].setTextSize(numPlayers > 2 ? 10 : 14);
             }
 
@@ -484,7 +484,7 @@ public class MainActivity extends AppCompatActivity {
             cells[m.x][m.y].setBackgroundColor(Color.parseColor("#224422"));
         }
         for (Obstacle o : obstacles) {
-            cells[o.x][o.y].setBackgroundColor(Color.parseColor("#444444"));
+            cells[o.x][o.y].setBackgroundResource(o.type == 0 ? R.drawable.obstacle_rock : R.drawable.obstacle_tree);
         }
     }
 
@@ -613,7 +613,7 @@ public class MainActivity extends AppCompatActivity {
             } else {
                 int oldX = m.x, oldY = m.y;
                 m.x = next[0]; m.y = next[1];
-                GridAnimationManager.animateStationaryToTarget(cells[oldX][oldY], cells[m.x][m.y], "🧟\n" + m.hp, Color.parseColor("#224422"), (numPlayers > 2 ? 10 : 14), effectLayer, () -> {
+                GridAnimationManager.animateStationaryToTarget(cells[oldX][oldY], cells[m.x][m.y], "🐉\n" + m.hp, Color.parseColor("#224422"), (numPlayers > 2 ? 10 : 14), effectLayer, () -> {
                     processMonsterSequence(index + 1);
                 });
             }
@@ -670,6 +670,8 @@ public class MainActivity extends AppCompatActivity {
                 cells[i][j].setScaleX(1.0f); cells[i][j].setScaleY(1.0f);
                 cells[i][j].setTranslationX(0); cells[i][j].setTranslationY(0);
                 cells[i][j].setAlpha(1.0f);
+                cells[i][j].setBackgroundResource(0);
+                cells[i][j].setBackgroundColor(Color.parseColor("#1A1A1A"));
             }
         }
         
@@ -684,13 +686,12 @@ public class MainActivity extends AppCompatActivity {
         
         for (Monster m : monsters) {
             cells[m.x][m.y].setTextSize(numPlayers > 2 ? 10 : 14);
-            cells[m.x][m.y].setText("🧟\n" + m.hp);
+            cells[m.x][m.y].setText("🐉\n" + m.hp);
             cells[m.x][m.y].setBackgroundColor(Color.parseColor("#224422"));
         }
         for (Obstacle o : obstacles) {
-            cells[o.x][o.y].setTextSize(numPlayers > 2 ? 14 : 18);
-            cells[o.x][o.y].setText("🗿");
-            cells[o.x][o.y].setBackgroundColor(Color.parseColor("#444444"));
+            cells[o.x][o.y].setText("");
+            cells[o.x][o.y].setBackgroundResource(o.type == 0 ? R.drawable.obstacle_rock : R.drawable.obstacle_tree);
         }
     }
 
