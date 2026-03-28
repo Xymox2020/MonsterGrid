@@ -536,9 +536,6 @@ public class MainActivity extends AppCompatActivity {
         for (Obstacle o : obstacles) {
             cells[o.x][o.y].setBackgroundResource(o.type == 0 ? R.drawable.obstacle_rock : R.drawable.obstacle_tree);
         }
-        for (Collectable c : collectables) {
-            cells[c.x][c.y].setBackgroundColor(c.type == Collectable.TYPE_LOOT ? Color.parseColor("#4400FFFF") : Color.parseColor("#44FF00FF"));
-        }
     }
 
     private void showUpgradeOverlay(Player p) {
