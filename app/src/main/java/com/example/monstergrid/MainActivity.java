@@ -33,6 +33,7 @@ public class MainActivity extends AppCompatActivity {
     private boolean isAttackMode = false;
     private boolean isAnimating = false;
     private int numPlayers = 2;
+    private int nextSpawnPlayerIndex = 0;
 
     private TextView statusText, logText, winnerName;
     private TextView[] playerStatsTexts = new TextView[4];
@@ -118,7 +119,7 @@ public class MainActivity extends AppCompatActivity {
         numPlayers = count;
         if (numPlayers == 2) gridSize = 10;
         else if (numPlayers == 3) gridSize = 12;
-        else gridSize = 15;
+        else gridSize = 14;
         
         selectionOverlay.setVisibility(View.GONE);
         setupGrid();
@@ -206,6 +207,7 @@ public class MainActivity extends AppCompatActivity {
         obstacles.clear();
         currentPlayerIndex = 0;
         turnCounter = 0;
+        nextSpawnPlayerIndex = 0;
         gameOverOverlay.setVisibility(View.GONE);
         upgradeOverlay.setVisibility(View.GONE);
         
@@ -221,10 +223,15 @@ public class MainActivity extends AppCompatActivity {
 
         int obstacleCount = (int) (gridSize * gridSize * 0.08);
         int monsterCount = (int) (gridSize * gridSize * 0.06);
-        minMonsters = monsterCount / 2;
+        
+        if (numPlayers == 3) minMonsters = 6;
+        else if (numPlayers == 4) minMonsters = 8;
+        else minMonsters = 3;
 
         for (int i = 0; i < obstacleCount; i++) spawnObstacle();
-        for (int i = 0; i < monsterCount; i++) spawnMonster();
+        for (int i = 0; i < Math.max(monsterCount, minMonsters); i++) {
+            spawnMonsterNearPlayer(i % numPlayers);
+        }
         
         drawBoard();
         updateUI();
@@ -248,25 +255,52 @@ public class MainActivity extends AppCompatActivity {
 
     private void maintainMonsterCount() {
         while (monsters.size() < minMonsters) {
-            spawnMonster();
+            spawnMonsterNearPlayer(nextSpawnPlayerIndex);
+            nextSpawnPlayerIndex = (nextSpawnPlayerIndex + 1) % numPlayers;
         }
     }
 
-    private void spawnMonster() {
+    private void spawnMonsterNearPlayer(int pIdx) {
+        Player p = players.get(pIdx);
         int rx, ry;
         boolean tooClose;
+        int attempts = 0;
         do {
-            rx = random.nextInt(gridSize);
-            ry = random.nextInt(gridSize);
+            // Define area based on player position
+            int rangeX = gridSize / 2;
+            int rangeY = gridSize / 2;
+            int startX = (p.x < gridSize / 2) ? 0 : gridSize / 2;
+            int startY = (p.y < gridSize / 2) ? 0 : gridSize / 2;
+            
+            rx = startX + random.nextInt(rangeX);
+            ry = startY + random.nextInt(rangeY);
+            
             tooClose = false;
-            for (Player p : players) {
-                if (p.hp > 0 && Math.abs(rx - p.x) < 2 && Math.abs(ry - p.y) < 2) {
+            // Check if too close to ANY player, but specifically avoid target player's start
+            for (Player pl : players) {
+                if (pl.hp > 0 && Math.abs(rx - pl.x) < 2 && Math.abs(ry - pl.y) < 2) {
                     tooClose = true;
                     break;
                 }
             }
-        } while (!isEmpty(rx, ry) || tooClose);
-        monsters.add(new Monster(rx, ry, turnCounter / (numPlayers * 2)));
+            
+            attempts++;
+            if (attempts > 50) { // Fallback: random grid position if local area is full
+                rx = random.nextInt(gridSize);
+                ry = random.nextInt(gridSize);
+                tooClose = false;
+                for (Player pl : players) {
+                    if (pl.hp > 0 && Math.abs(rx - pl.x) < 2 && Math.abs(ry - pl.y) < 2) {
+                        tooClose = true;
+                        break;
+                    }
+                }
+            }
+        } while ((!isEmpty(rx, ry) || tooClose) && attempts < 100);
+        
+        if (attempts < 100) {
+            monsters.add(new Monster(rx, ry, turnCounter / (numPlayers * 2)));
+        }
     }
 
     private void handleCellClick(int r, int c) {
