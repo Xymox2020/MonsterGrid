@@ -33,7 +33,7 @@ public class MainActivity extends AppCompatActivity {
     private boolean isAttackMode = false;
     private boolean isAnimating = false;
     private int numPlayers = 2;
-    private int nextSpawnPlayerIndex = 0;
+    private int nextSpawnQuadrantIndex = 0;
 
     private TextView statusText, logText, winnerName;
     private TextView[] playerStatsTexts = new TextView[4];
@@ -207,7 +207,7 @@ public class MainActivity extends AppCompatActivity {
         obstacles.clear();
         currentPlayerIndex = 0;
         turnCounter = 0;
-        nextSpawnPlayerIndex = 0;
+        nextSpawnQuadrantIndex = 0;
         gameOverOverlay.setVisibility(View.GONE);
         upgradeOverlay.setVisibility(View.GONE);
         
@@ -236,29 +236,26 @@ public class MainActivity extends AppCompatActivity {
         }
 
         for (int i = 0; i < obstacleCount; i++) {
-            spawnObstacleNearPlayer(i % numPlayers);
+            spawnObstacleInQuadrant(i % 4);
         }
         
         for (int i = 0; i < initialMonsterCount; i++) {
-            spawnMonsterNearPlayer(i % numPlayers);
+            spawnMonsterInQuadrant(i % 4);
         }
         
         drawBoard();
         updateUI();
     }
 
-    private void spawnObstacleNearPlayer(int pIdx) {
-        Player p = players.get(pIdx);
+    private void spawnObstacleInQuadrant(int qIdx) {
         int rx, ry;
         int attempts = 0;
+        int startX = (qIdx < 2) ? 0 : gridSize / 2;
+        int startY = (qIdx % 2 == 0) ? 0 : gridSize / 2;
+        
         do {
-            int rangeX = gridSize / 2;
-            int rangeY = gridSize / 2;
-            int startX = (p.x < gridSize / 2) ? 0 : gridSize / 2;
-            int startY = (p.y < gridSize / 2) ? 0 : gridSize / 2;
-            
-            rx = startX + random.nextInt(rangeX);
-            ry = startY + random.nextInt(rangeY);
+            rx = startX + random.nextInt(gridSize / 2);
+            ry = startY + random.nextInt(gridSize / 2);
             
             attempts++;
             if (attempts > 50) {
@@ -281,25 +278,21 @@ public class MainActivity extends AppCompatActivity {
 
     private void maintainMonsterCount() {
         while (monsters.size() < minMonsters) {
-            spawnMonsterNearPlayer(nextSpawnPlayerIndex);
-            nextSpawnPlayerIndex = (nextSpawnPlayerIndex + 1) % numPlayers;
+            spawnMonsterInQuadrant(nextSpawnQuadrantIndex);
+            nextSpawnQuadrantIndex = (nextSpawnQuadrantIndex + 1) % 4;
         }
     }
 
-    private void spawnMonsterNearPlayer(int pIdx) {
-        Player p = players.get(pIdx);
+    private void spawnMonsterInQuadrant(int qIdx) {
         int rx, ry;
         boolean tooClose;
         int attempts = 0;
+        int startX = (qIdx < 2) ? 0 : gridSize / 2;
+        int startY = (qIdx % 2 == 0) ? 0 : gridSize / 2;
+        
         do {
-            // Define area based on player position
-            int rangeX = gridSize / 2;
-            int rangeY = gridSize / 2;
-            int startX = (p.x < gridSize / 2) ? 0 : gridSize / 2;
-            int startY = (p.y < gridSize / 2) ? 0 : gridSize / 2;
-            
-            rx = startX + random.nextInt(rangeX);
-            ry = startY + random.nextInt(rangeY);
+            rx = startX + random.nextInt(gridSize / 2);
+            ry = startY + random.nextInt(gridSize / 2);
             
             tooClose = false;
             // Check if too close to ANY player (min 3 tiles distance)
