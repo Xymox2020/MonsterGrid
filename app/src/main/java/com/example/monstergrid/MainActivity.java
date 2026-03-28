@@ -543,6 +543,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void showUpgradeOverlay(Player p) {
         upgradeOverlay.setVisibility(View.VISIBLE);
+        GridAnimationManager.hideTurnIndicator();
         List<String> options = new ArrayList<>();
         options.add("DMG +2"); 
         options.add("RANGE +1"); 
@@ -751,13 +752,13 @@ public class MainActivity extends AppCompatActivity {
             playerStatsTexts[i].setText("P" + (i+1) + " HP: " + pl.hp + (pl.armor > 0 ? " (🛡️" + pl.armor + ")" : ""));
         }
         
-        btnMove.setEnabled(p.hp > 0 && !p.hasMoved && !isAnimating && (gameOverOverlay == null || gameOverOverlay.getVisibility() == View.GONE));
-        btnAttack.setEnabled(p.hp > 0 && !p.hasAttacked && !isAnimating && (gameOverOverlay == null || gameOverOverlay.getVisibility() == View.GONE));
+        btnMove.setEnabled(p.hp > 0 && !p.hasMoved && !isAnimating && (gameOverOverlay == null || gameOverOverlay.getVisibility() == View.GONE) && (upgradeOverlay == null || upgradeOverlay.getVisibility() == View.GONE));
+        btnAttack.setEnabled(p.hp > 0 && !p.hasAttacked && !isAnimating && (gameOverOverlay == null || gameOverOverlay.getVisibility() == View.GONE) && (upgradeOverlay == null || upgradeOverlay.getVisibility() == View.GONE));
         expBar.setProgress(p.exp);
 
         updateBackground(currentPlayerIndex);
 
-        if (!isAnimating && (gameOverOverlay == null || gameOverOverlay.getVisibility() == View.GONE) && p.hp > 0) {
+        if (!isAnimating && (gameOverOverlay == null || gameOverOverlay.getVisibility() == View.GONE) && (upgradeOverlay == null || upgradeOverlay.getVisibility() == View.GONE) && p.hp > 0) {
             GridAnimationManager.updateTurnIndicator(cells[p.x][p.y], effectLayer);
         } else {
             GridAnimationManager.hideTurnIndicator();
@@ -787,6 +788,26 @@ public class MainActivity extends AppCompatActivity {
             }
         }
         
+        // 1. Draw Collectables first (so they are at the bottom)
+        for (Collectable c : collectables) {
+            cells[c.x][c.y].setText(c.type == Collectable.TYPE_LOOT ? "🎁" : "🍓");
+            cells[c.x][c.y].setTextSize(18);
+        }
+
+        // 2. Draw Obstacles
+        for (Obstacle o : obstacles) {
+            cells[o.x][o.y].setText("");
+            cells[o.x][o.y].setBackgroundResource(o.type == 0 ? R.drawable.obstacle_rock : R.drawable.obstacle_tree);
+        }
+
+        // 3. Draw Monsters (Dragons) above collectables
+        for (Monster m : monsters) {
+            cells[m.x][m.y].setTextSize(numPlayers > 2 ? 10 : 14);
+            cells[m.x][m.y].setText("🐉\n" + m.hp);
+            cells[m.x][m.y].setBackgroundColor(Color.parseColor("#224422"));
+        }
+
+        // 4. Draw Players at the very top
         for (int i = 0; i < players.size(); i++) {
             Player p = players.get(i);
             if (p.hp > 0) {
@@ -794,20 +815,6 @@ public class MainActivity extends AppCompatActivity {
                 cells[p.x][p.y].setText(getPlayerTag(i, p.hp));
                 cells[p.x][p.y].setBackgroundResource(getPlayerBackgroundResource(i));
             }
-        }
-        
-        for (Monster m : monsters) {
-            cells[m.x][m.y].setTextSize(numPlayers > 2 ? 10 : 14);
-            cells[m.x][m.y].setText("🐉\n" + m.hp);
-            cells[m.x][m.y].setBackgroundColor(Color.parseColor("#224422"));
-        }
-        for (Obstacle o : obstacles) {
-            cells[o.x][o.y].setText("");
-            cells[o.x][o.y].setBackgroundResource(o.type == 0 ? R.drawable.obstacle_rock : R.drawable.obstacle_tree);
-        }
-        for (Collectable c : collectables) {
-            cells[c.x][c.y].setText(c.type == Collectable.TYPE_LOOT ? "🎁" : "🍓");
-            cells[c.x][c.y].setTextSize(18);
         }
     }
 

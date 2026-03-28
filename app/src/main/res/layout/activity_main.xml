@@ -183,6 +183,15 @@
         </HorizontalScrollView>
     </FrameLayout>
 
+    <!-- Visual Layer for Effects - Low elevation to stay below overlays -->
+    <FrameLayout
+        android:id="@+id/effectLayer"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:elevation="2dp"
+        android:clickable="false"
+        android:focusable="false"/>
+
     <!-- Glassmorphism Controls -->
     <LinearLayout
         android:id="@+id/controls"
@@ -249,16 +258,6 @@
             android:letterSpacing="0.05"/>
     </LinearLayout>
 
-    <!-- Visual Layer for Effects -->
-    <FrameLayout
-        android:id="@+id/effectLayer"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:elevation="80dp"
-        android:translationZ="80dp"
-        android:clickable="false"
-        android:focusable="false"/>
-
     <!-- Player Selection Overlay -->
     <FrameLayout
         android:id="@+id/selectionOverlay"
@@ -295,39 +294,56 @@
         </LinearLayout>
     </FrameLayout>
 
-    <!-- Futuristic Upgrade Overlay -->
+    <!-- WOW Upgrade Overlay -->
     <FrameLayout
         android:id="@+id/upgradeOverlay"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="#E60A0B10"
+        android:background="#DD000000"
         android:visibility="gone"
-        android:elevation="100dp"
+        android:elevation="500dp"
         android:clickable="true"
         android:focusable="true">
 
         <LinearLayout
-            android:layout_width="320dp"
+            android:layout_width="340dp"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:orientation="vertical"
-            android:padding="24dp"
-            android:background="@drawable/glass_panel">
+            android:padding="32dp"
+            android:background="@drawable/glass_panel"
+            android:backgroundTint="#0D47A1">
 
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="PROTOCOL UPGRADE"
-                android:textColor="#FFFFFF"
-                android:textSize="24sp"
-                android:fontFamily="sans-serif-condensed-medium"
+                android:text="⭐ LEVEL UP ⭐"
+                android:textColor="#FFD700"
+                android:textSize="32sp"
+                android:textStyle="bold"
+                android:fontFamily="sans-serif-black"
                 android:letterSpacing="0.1"
                 android:gravity="center"
-                android:layout_marginBottom="24dp"/>
+                android:shadowColor="#000000"
+                android:shadowDx="2"
+                android:shadowDy="2"
+                android:shadowRadius="4"
+                android:layout_marginBottom="8dp"/>
 
-            <Button android:id="@+id/upgrade1" style="@style/Widget.MaterialComponents.Button.OutlinedButton" android:layout_width="match_parent" android:layout_height="64dp" android:textColor="#FFFFFF" android:layout_marginBottom="12dp" app:strokeColor="#4DFFFFFF" android:fontFamily="sans-serif-condensed"/>
-            <Button android:id="@+id/upgrade2" style="@style/Widget.MaterialComponents.Button.OutlinedButton" android:layout_width="match_parent" android:layout_height="64dp" android:textColor="#FFFFFF" android:layout_marginBottom="12dp" app:strokeColor="#4DFFFFFF" android:fontFamily="sans-serif-condensed"/>
-            <Button android:id="@+id/upgrade3" style="@style/Widget.MaterialComponents.Button.OutlinedButton" android:layout_width="match_parent" android:layout_height="64dp" android:textColor="#FFFFFF" app:strokeColor="#4DFFFFFF" android:fontFamily="sans-serif-condensed"/>
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="CHOOSE YOUR ASCENSION"
+                android:textColor="#B0BEC5"
+                android:textSize="14sp"
+                android:fontFamily="sans-serif-condensed-light"
+                android:letterSpacing="0.2"
+                android:gravity="center"
+                android:layout_marginBottom="32dp"/>
+
+            <Button android:id="@+id/upgrade1" style="@style/Widget.AppCompat.Button.Borderless" android:layout_width="match_parent" android:layout_height="64dp" android:textColor="#FFFFFF" android:layout_marginBottom="16dp" android:background="@drawable/upgrade_button_bg" android:fontFamily="sans-serif-condensed-medium" android:textSize="18sp" android:elevation="4dp"/>
+            <Button android:id="@+id/upgrade2" style="@style/Widget.AppCompat.Button.Borderless" android:layout_width="match_parent" android:layout_height="64dp" android:textColor="#FFFFFF" android:layout_marginBottom="16dp" android:background="@drawable/upgrade_button_bg" android:fontFamily="sans-serif-condensed-medium" android:textSize="18sp" android:elevation="4dp"/>
+            <Button android:id="@+id/upgrade3" style="@style/Widget.AppCompat.Button.Borderless" android:layout_width="match_parent" android:layout_height="64dp" android:textColor="#FFFFFF" android:background="@drawable/upgrade_button_bg" android:fontFamily="sans-serif-condensed-medium" android:textSize="18sp" android:elevation="4dp"/>
         </LinearLayout>
     </FrameLayout>
 
@@ -338,7 +354,7 @@
         android:layout_height="match_parent"
         android:background="#E6000000"
         android:visibility="gone"
-        android:elevation="200dp"
+        android:elevation="1000dp"
         android:clickable="true"
         android:focusable="true">
 
