@@ -405,7 +405,7 @@ public class MainActivity extends AppCompatActivity {
             if (col != null) {
                 handleCollectable(p, col);
             } else {
-                useAction("Moved!");
+                useAction("Traversed!");
             }
         });
     }
@@ -413,31 +413,31 @@ public class MainActivity extends AppCompatActivity {
     private void handleCollectable(Player p, Collectable col) {
         collectables.remove(col);
         if (col.type == Collectable.TYPE_LOOT) {
-            logText.setText("Loot Package Found!");
+            logText.setText("Ancient Artifact Found!");
             showUpgradeOverlay(p);
         } else {
             p.hp = Math.min(p.maxHp, p.hp + 5);
-            useAction("Picked Berry! +5 HP");
+            useAction("Picked Holy Berry! +5 HP");
         }
     }
 
     private String getPlayerTag(int index, int hp) {
         String icon = "";
         switch (index) {
-            case 0: icon = "👨‍🚀"; break;
-            case 1: icon = "👮"; break;
-            case 2: icon = "👷"; break;
-            case 3: icon = "🦸"; break;
+            case 0: icon = "⚔️"; break;
+            case 1: icon = "🏹"; break;
+            case 2: icon = "🧙"; break;
+            case 3: icon = "🛡️"; break;
         }
         return icon + "\n" + hp;
     }
 
     private int getPlayerColor(int index) {
         switch (index) {
-            case 0: return Color.parseColor("#004466");
-            case 1: return Color.parseColor("#660000");
-            case 2: return Color.parseColor("#006600");
-            case 3: return Color.parseColor("#666600");
+            case 0: return Color.parseColor("#4A0E0E");
+            case 1: return Color.parseColor("#0E4A0E");
+            case 2: return Color.parseColor("#0E0E4A");
+            case 3: return Color.parseColor("#4A4A0E");
             default: return Color.GRAY;
         }
     }
@@ -482,7 +482,7 @@ public class MainActivity extends AppCompatActivity {
             }
 
             isAnimating = false;
-            useAction("Shot for " + damage + " DMG!");
+            useAction("Struck for " + damage + " DMG!");
         });
     }
 
@@ -509,7 +509,7 @@ public class MainActivity extends AppCompatActivity {
             }
             
             isAnimating = false;
-            useAction("Hit Player for " + damage + " DMG!");
+            useAction("Slid Warrior for " + damage + " DMG!");
         });
     }
 
@@ -523,7 +523,7 @@ public class MainActivity extends AppCompatActivity {
             }
         }
         if (aliveCount <= 1) {
-            showGameOver("PLAYER " + (winnerIdx + 1) + " VICTORIOUS");
+            showGameOver("WARRIOR " + (winnerIdx + 1) + " VICTORIOUS");
         } else if (players.get(currentPlayerIndex).hp <= 0) {
             // Current player is dead, skip to next alive player
             do {
@@ -861,10 +861,10 @@ public class MainActivity extends AppCompatActivity {
         }
 
         Player p = getCurrentPlayer();
-        statusText.setText("Player " + (currentPlayerIndex + 1) + " Turn");
+        statusText.setText("WARRIOR " + (currentPlayerIndex + 1) + " TURN");
         for (int i = 0; i < numPlayers; i++) {
             Player pl = players.get(i);
-            playerStatsTexts[i].setText("P" + (i+1) + " HP: " + pl.hp + (pl.armor > 0 ? " (🛡️" + pl.armor + ")" : ""));
+            playerStatsTexts[i].setText("W" + (i+1) + " HP: " + pl.hp + (pl.armor > 0 ? " (🛡️" + pl.armor + ")" : ""));
         }
         
         btnMove.setEnabled(p.hp > 0 && !p.hasMoved && !isAnimating && (gameOverOverlay == null || gameOverOverlay.getVisibility() == View.GONE) && (upgradeOverlay == null || upgradeOverlay.getVisibility() == View.GONE));
@@ -882,10 +882,10 @@ public class MainActivity extends AppCompatActivity {
 
     private void updateBackground(int index) {
         switch (index) {
-            case 0: mainRoot.setBackgroundResource(R.drawable.gradient_player1); break;
-            case 1: mainRoot.setBackgroundResource(R.drawable.gradient_player2); break;
-            case 2: mainRoot.setBackgroundColor(Color.parseColor("#002200")); break;
-            case 3: mainRoot.setBackgroundColor(Color.parseColor("#222200")); break;
+            case 0: mainRoot.setBackgroundResource(R.drawable.fantasy_bg_p1); break;
+            case 1: mainRoot.setBackgroundResource(R.drawable.fantasy_bg_p2); break;
+            case 2: mainRoot.setBackgroundColor(Color.parseColor("#0A0F0A")); break;
+            case 3: mainRoot.setBackgroundColor(Color.parseColor("#0F0F0A")); break;
         }
     }
 
