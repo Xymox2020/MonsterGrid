@@ -1,5 +1,7 @@
 package com.example.monstergrid;
 
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
 import android.animation.ValueAnimator;
 import android.content.Context;
 import android.graphics.Canvas;
@@ -20,46 +22,79 @@ public class ShimmerImageView extends AppCompatImageView {
     private LinearGradient mShader;
     private Matrix mMatrix = new Matrix();
     private ValueAnimator mAnimator;
+    private Random mRandom = new Random();
+    
+    private final Runnable mRestartRunnable = new Runnable() {
+        @Override
+        public void run() {
+            if (mAnimator != null && getVisibility() == VISIBLE) {
+                mAnimator.start();
+            }
+        }
+    };
 
     public ShimmerImageView(Context context) { super(context); }
     public ShimmerImageView(Context context, AttributeSet attrs) { super(context, attrs); }
 
     public void startShimmer() {
-        if (mAnimator != null) mAnimator.cancel();
-        // Wider range to ensure it starts and ends completely off-screen
-        mAnimator = ValueAnimator.ofFloat(-2.5f, 3.5f);
-        mAnimator.setDuration(3000); // Total cycle duration
+        stopShimmer();
+        
+        mAnimator = ValueAnimator.ofFloat(-3.0f, 4.0f);
+        mAnimator.setDuration(1000);
         mAnimator.setInterpolator(new LinearInterpolator());
-        mAnimator.setRepeatCount(ValueAnimator.INFINITE);
-        mAnimator.setStartDelay(new Random().nextInt(1000));
+        
         mAnimator.addUpdateListener(animation -> {
             mProgress = (float) animation.getAnimatedValue();
             invalidate();
         });
+
+        mAnimator.addListener(new AnimatorListenerAdapter() {
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                postDelayed(mRestartRunnable, 2500 + mRandom.nextInt(2000));
+            }
+        });
+
+        mAnimator.setStartDelay(mRandom.nextInt(1000));
         mAnimator.start();
+    }
+
+    public void stopShimmer() {
+        if (mAnimator != null) {
+            mAnimator.removeAllUpdateListeners();
+            mAnimator.removeAllListeners();
+            mAnimator.cancel();
+            mAnimator = null;
+        }
+        removeCallbacks(mRestartRunnable);
+        mProgress = -3.0f;
+        invalidate();
+    }
+
+    @Override
+    protected void onDetachedFromWindow() {
+        super.onDetachedFromWindow();
+        stopShimmer();
     }
 
     @Override
     protected void onDraw(Canvas canvas) {
-        // Create a layer to apply Xfermode correctly (masks the shimmer to the image content)
-        int saveCount = canvas.saveLayer(0, 0, getWidth(), getHeight(), null);
+        if (getDrawable() == null) return;
         
+        int saveCount = canvas.saveLayer(0, 0, getWidth(), getHeight(), null);
         super.onDraw(canvas);
 
-        // Only draw the shimmer if it's within a reasonable range of the view
-        if (mProgress > -2.5f && mProgress < 3.5f) {
+        if (mProgress > -3.0f && mProgress < 4.0f) {
             int w = getWidth();
             int h = getHeight();
             if (w > 0 && h > 0) {
                 if (mShader == null) {
-                    // Create a sharp, high-quality diagonal glare
                     mShader = new LinearGradient(0, 0, w * 0.6f, h,
                             new int[]{0x00FFFFFF, 0x00FFFFFF, 0xB3FFFFFF, 0x00FFFFFF, 0x00FFFFFF},
                             new float[]{0f, 0.35f, 0.5f, 0.65f, 1f}, Shader.TileMode.CLAMP);
                     mPaint.setShader(mShader);
                     mPaint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC_ATOP));
                 }
-                // Translate the glare based on progress
                 mMatrix.setTranslate(w * mProgress, 0);
                 mShader.setLocalMatrix(mMatrix);
                 canvas.drawRect(0, 0, w, h, mPaint);

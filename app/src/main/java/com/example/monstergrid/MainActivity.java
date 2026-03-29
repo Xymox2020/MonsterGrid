@@ -592,6 +592,7 @@ public class MainActivity extends AppCompatActivity {
             img.setOnClickListener(v -> {
                 isParticleSystemActive = false;
                 particleContainer.removeAllViews();
+                for (ShimmerImageView sImg : upgradeImages) sImg.stopShimmer();
                 applyUpgrade(p, choice);
                 upgradeOverlay.setVisibility(View.GONE);
                 if (p.exp >= 6) p.exp -= 6;
