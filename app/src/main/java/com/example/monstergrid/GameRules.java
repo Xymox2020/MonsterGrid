@@ -5,8 +5,10 @@ public class GameRules {
     public static boolean isValidPlayerMove(int startX, int startY, int endX, int endY, int maxMove) {
         int dx = Math.abs(startX - endX);
         int dy = Math.abs(startY - endY);
-        boolean isHorizontalOrVertical = (dx == 0 || dy == 0);
-        return isHorizontalOrVertical && (dx + dy) <= maxMove && (dx + dy) > 0;
+        // Allow horizontal, vertical, and 45-degree diagonal moves.
+        // Diagonal moves cost double (1+1=2 distance per tile).
+        boolean isHVD = (dx == 0 || dy == 0 || dx == dy);
+        return isHVD && (dx + dy) <= maxMove && (dx + dy) > 0;
     }
 
     public static boolean isValidPlayerAttack(int startX, int startY, int endX, int endY, int range) {
