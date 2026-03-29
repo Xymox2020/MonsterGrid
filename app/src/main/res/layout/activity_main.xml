@@ -456,7 +456,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Tap to re-enter the realm"
+                android:text="Tap to play again"
                 android:textColor="#F5DEB3"
                 android:textSize="16sp"
                 android:fontFamily="serif"
