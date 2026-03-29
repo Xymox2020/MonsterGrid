@@ -299,51 +299,70 @@
         android:id="@+id/upgradeOverlay"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="#DD000000"
+        android:background="#F2000000"
         android:visibility="gone"
         android:elevation="500dp"
         android:clickable="true"
         android:focusable="true">
 
         <LinearLayout
-            android:layout_width="340dp"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
             android:orientation="vertical"
-            android:padding="32dp"
-            android:background="@drawable/glass_panel"
-            android:backgroundTint="#0D47A1">
+            android:gravity="center"
+            android:padding="0dp">
 
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="⭐ LEVEL UP ⭐"
+                android:text="LEVEL UP"
                 android:textColor="#FFD700"
-                android:textSize="32sp"
-                android:textStyle="bold"
-                android:fontFamily="sans-serif-black"
-                android:letterSpacing="0.1"
+                android:textSize="20sp"
+                android:fontFamily="sans-serif-condensed-light"
+                android:letterSpacing="0.3"
                 android:gravity="center"
-                android:shadowColor="#000000"
-                android:shadowDx="2"
-                android:shadowDy="2"
-                android:shadowRadius="4"
-                android:layout_marginBottom="8dp"/>
+                android:layout_marginBottom="16dp"/>
 
-            <TextView
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="CHOOSE YOUR ASCENSION"
-                android:textColor="#B0BEC5"
-                android:textSize="14sp"
-                android:fontFamily="sans-serif-condensed-light"
-                android:letterSpacing="0.2"
+                android:orientation="horizontal"
                 android:gravity="center"
-                android:layout_marginBottom="32dp"/>
+                android:padding="2dp">
 
-            <Button android:id="@+id/upgrade1" style="@style/Widget.AppCompat.Button.Borderless" android:layout_width="match_parent" android:layout_height="64dp" android:textColor="#FFFFFF" android:layout_marginBottom="16dp" android:background="@drawable/upgrade_button_bg" android:fontFamily="sans-serif-condensed-medium" android:textSize="18sp" android:elevation="4dp"/>
-            <Button android:id="@+id/upgrade2" style="@style/Widget.AppCompat.Button.Borderless" android:layout_width="match_parent" android:layout_height="64dp" android:textColor="#FFFFFF" android:layout_marginBottom="16dp" android:background="@drawable/upgrade_button_bg" android:fontFamily="sans-serif-condensed-medium" android:textSize="18sp" android:elevation="4dp"/>
-            <Button android:id="@+id/upgrade3" style="@style/Widget.AppCompat.Button.Borderless" android:layout_width="match_parent" android:layout_height="64dp" android:textColor="#FFFFFF" android:background="@drawable/upgrade_button_bg" android:fontFamily="sans-serif-condensed-medium" android:textSize="18sp" android:elevation="4dp"/>
+                <ImageView
+                    android:id="@+id/upgrade1"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:adjustViewBounds="true"
+                    android:scaleType="fitCenter"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:background="?attr/selectableItemBackgroundBorderless" />
+
+                <ImageView
+                    android:id="@+id/upgrade2"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:adjustViewBounds="true"
+                    android:scaleType="fitCenter"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:background="?attr/selectableItemBackgroundBorderless" />
+
+                <ImageView
+                    android:id="@+id/upgrade3"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:adjustViewBounds="true"
+                    android:scaleType="fitCenter"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:background="?attr/selectableItemBackgroundBorderless" />
+            </LinearLayout>
         </LinearLayout>
     </FrameLayout>
 

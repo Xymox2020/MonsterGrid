@@ -9,6 +9,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.GridLayout;
+import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
@@ -48,7 +49,7 @@ public class MainActivity extends AppCompatActivity {
     private Button btnMove, btnAttack;
     private View upgradeOverlay, mainRoot, gameOverOverlay, selectionOverlay;
     private FrameLayout effectLayer;
-    private Button[] upgradeButtons = new Button[3];
+    private ImageView[] upgradeImages = new ImageView[3];
     private Random random = new Random();
     private Handler mainHandler = new Handler(Looper.getMainLooper());
 
@@ -79,9 +80,9 @@ public class MainActivity extends AppCompatActivity {
         gameOverOverlay = findViewById(R.id.gameOverOverlay);
         winnerName = findViewById(R.id.winnerName);
         
-        upgradeButtons[0] = findViewById(R.id.upgrade1);
-        upgradeButtons[1] = findViewById(R.id.upgrade2);
-        upgradeButtons[2] = findViewById(R.id.upgrade3);
+        upgradeImages[0] = findViewById(R.id.upgrade1);
+        upgradeImages[1] = findViewById(R.id.upgrade2);
+        upgradeImages[2] = findViewById(R.id.upgrade3);
 
         findViewById(R.id.btn2Players).setOnClickListener(v -> startGame(2));
         findViewById(R.id.btn3Players).setOnClickListener(v -> startGame(3));
@@ -564,8 +565,21 @@ public class MainActivity extends AppCompatActivity {
 
         for (int i = 0; i < 3; i++) {
             final String choice = options.get(i);
-            upgradeButtons[i].setText(choice);
-            upgradeButtons[i].setOnClickListener(v -> {
+            ImageView img = upgradeImages[i];
+            
+            int iconRes = 0;
+            if (choice.contains("DMG")) iconRes = R.drawable.dmg_upgrade;
+            else if (choice.contains("RANGE")) iconRes = random.nextBoolean() ? R.drawable.range_upgrade1 : R.drawable.range_upgrade2;
+            else if (choice.contains("MOVE")) iconRes = R.drawable.movement_upgrade;
+            else if (choice.contains("HEAL")) iconRes = R.drawable.fish_upgrade;
+            else if (choice.contains("CRIT")) iconRes = R.drawable.crit_upgrade;
+            else if (choice.contains("ARMOR")) iconRes = R.drawable.armor_upgrade;
+
+            if (iconRes != 0) {
+                img.setImageResource(iconRes);
+            }
+
+            img.setOnClickListener(v -> {
                 applyUpgrade(p, choice);
                 upgradeOverlay.setVisibility(View.GONE);
                 if (p.exp >= 6) p.exp -= 6;
