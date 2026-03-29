@@ -769,7 +769,7 @@ public class MainActivity extends AppCompatActivity {
             rx = startX + random.nextInt(gridSize / 2);
             ry = startY + random.nextInt(gridSize / 2);
             attempts++;
-        } while (!isEmpty(rx, ry) && attempts < 50);
+        } while ((!isEmpty(rx, ry) || isCollectableAt(rx, ry)) && attempts < 50);
         
         if (attempts < 50) {
             collectables.add(new Collectable(rx, ry, type));
