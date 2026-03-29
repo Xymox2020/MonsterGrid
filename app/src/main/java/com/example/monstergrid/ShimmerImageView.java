@@ -16,7 +16,7 @@ import java.util.Random;
 
 public class ShimmerImageView extends AppCompatImageView {
     private Paint mPaint = new Paint();
-    private float mProgress = -1f;
+    private float mProgress = -3f;
     private LinearGradient mShader;
     private Matrix mMatrix = new Matrix();
     private ValueAnimator mAnimator;
@@ -26,11 +26,12 @@ public class ShimmerImageView extends AppCompatImageView {
 
     public void startShimmer() {
         if (mAnimator != null) mAnimator.cancel();
-        mAnimator = ValueAnimator.ofFloat(-1.5f, 2.5f);
-        mAnimator.setDuration(2500);
+        // Wider range to ensure it starts and ends completely off-screen
+        mAnimator = ValueAnimator.ofFloat(-2.5f, 3.5f);
+        mAnimator.setDuration(3000); // Total cycle duration
         mAnimator.setInterpolator(new LinearInterpolator());
         mAnimator.setRepeatCount(ValueAnimator.INFINITE);
-        mAnimator.setStartDelay(new Random().nextInt(1500));
+        mAnimator.setStartDelay(new Random().nextInt(1000));
         mAnimator.addUpdateListener(animation -> {
             mProgress = (float) animation.getAnimatedValue();
             invalidate();
@@ -40,22 +41,25 @@ public class ShimmerImageView extends AppCompatImageView {
 
     @Override
     protected void onDraw(Canvas canvas) {
-        // Create a layer to apply Xfermode correctly
+        // Create a layer to apply Xfermode correctly (masks the shimmer to the image content)
         int saveCount = canvas.saveLayer(0, 0, getWidth(), getHeight(), null);
         
         super.onDraw(canvas);
 
-        if (mProgress > -1.5f && mProgress < 2.5f) {
+        // Only draw the shimmer if it's within a reasonable range of the view
+        if (mProgress > -2.5f && mProgress < 3.5f) {
             int w = getWidth();
             int h = getHeight();
             if (w > 0 && h > 0) {
                 if (mShader == null) {
-                    mShader = new LinearGradient(0, 0, w / 2, h,
-                            new int[]{0x00FFFFFF, 0x00FFFFFF, 0xCCFFFFFF, 0x00FFFFFF, 0x00FFFFFF},
-                            new float[]{0f, 0.4f, 0.5f, 0.6f, 1f}, Shader.TileMode.CLAMP);
+                    // Create a sharp, high-quality diagonal glare
+                    mShader = new LinearGradient(0, 0, w * 0.6f, h,
+                            new int[]{0x00FFFFFF, 0x00FFFFFF, 0xB3FFFFFF, 0x00FFFFFF, 0x00FFFFFF},
+                            new float[]{0f, 0.35f, 0.5f, 0.65f, 1f}, Shader.TileMode.CLAMP);
                     mPaint.setShader(mShader);
                     mPaint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC_ATOP));
                 }
+                // Translate the glare based on progress
                 mMatrix.setTranslate(w * mProgress, 0);
                 mShader.setLocalMatrix(mMatrix);
                 canvas.drawRect(0, 0, w, h, mPaint);
