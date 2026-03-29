@@ -1,11 +1,19 @@
 package com.example.monstergrid;
 
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
+import android.animation.ObjectAnimator;
+import android.animation.PropertyValuesHolder;
+import android.animation.ValueAnimator;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.view.Gravity;
 import android.view.View;
+import android.view.animation.AccelerateDecelerateInterpolator;
+import android.view.animation.DecelerateInterpolator;
+import android.view.animation.LinearInterpolator;
 import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.GridLayout;
@@ -48,10 +56,11 @@ public class MainActivity extends AppCompatActivity {
     private ProgressBar expBar;
     private Button btnMove, btnAttack;
     private View upgradeOverlay, mainRoot, gameOverOverlay, selectionOverlay;
-    private FrameLayout effectLayer;
-    private ImageView[] upgradeImages = new ImageView[3];
+    private FrameLayout effectLayer, particleContainer;
+    private ShimmerImageView[] upgradeImages = new ShimmerImageView[3];
     private Random random = new Random();
     private Handler mainHandler = new Handler(Looper.getMainLooper());
+    private boolean isParticleSystemActive = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -77,6 +86,7 @@ public class MainActivity extends AppCompatActivity {
         upgradeOverlay = findViewById(R.id.upgradeOverlay);
         selectionOverlay = findViewById(R.id.selectionOverlay);
         effectLayer = findViewById(R.id.effectLayer);
+        particleContainer = findViewById(R.id.particleContainer);
         gameOverOverlay = findViewById(R.id.gameOverOverlay);
         winnerName = findViewById(R.id.winnerName);
         
@@ -565,7 +575,7 @@ public class MainActivity extends AppCompatActivity {
 
         for (int i = 0; i < 3; i++) {
             final String choice = options.get(i);
-            ImageView img = upgradeImages[i];
+            ShimmerImageView img = upgradeImages[i];
             
             int iconRes = 0;
             if (choice.contains("DMG")) iconRes = R.drawable.dmg_upgrade;
@@ -580,6 +590,8 @@ public class MainActivity extends AppCompatActivity {
             }
 
             img.setOnClickListener(v -> {
+                isParticleSystemActive = false;
+                particleContainer.removeAllViews();
                 applyUpgrade(p, choice);
                 upgradeOverlay.setVisibility(View.GONE);
                 if (p.exp >= 6) p.exp -= 6;
@@ -587,7 +599,86 @@ public class MainActivity extends AppCompatActivity {
                 updateUI();
                 drawBoard();
             });
+            
+            img.startShimmer();
         }
+        
+        startParticleSystem();
+    }
+    
+    private void startParticleSystem() {
+        isParticleSystemActive = true;
+        particleContainer.removeAllViews();
+        
+        // Spawn robust initial batch spread across the screen
+        for (int i = 0; i < 40; i++) {
+            spawnParticle(true);
+        }
+        
+        final int maxParticles = 60;
+        mainHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                if (!isParticleSystemActive) return;
+                if (particleContainer.getChildCount() < maxParticles) {
+                    spawnParticle(false);
+                }
+                mainHandler.postDelayed(this, 100);
+            }
+        });
+    }
+
+    private void spawnParticle(boolean instant) {
+        final ImageView particle = new ImageView(this);
+        particle.setImageResource(R.drawable.particle_star);
+        int size = 10 + random.nextInt(20);
+        FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(size, size);
+        params.gravity = Gravity.CENTER;
+        particle.setLayoutParams(params);
+        particleContainer.addView(particle);
+
+        float angle = random.nextFloat() * 2 * (float) Math.PI;
+        float distance = 250 + random.nextFloat() * 600;
+        float tx = (float) Math.cos(angle) * distance;
+        float ty = (float) Math.sin(angle) * distance;
+
+        if (instant) {
+            float progress = random.nextFloat();
+            particle.setTranslationX(tx * progress);
+            particle.setTranslationY(ty * progress);
+            particle.setAlpha(progress);
+            particle.setScaleX(0.5f + progress);
+            particle.setScaleY(0.5f + progress);
+        } else {
+            particle.setAlpha(0f);
+            particle.setScaleX(0.5f);
+            particle.setScaleY(0.5f);
+        }
+
+        particle.animate()
+                .translationX(tx)
+                .translationY(ty)
+                .alpha(1f)
+                .scaleX(1.5f)
+                .scaleY(1.5f)
+                .setDuration(2500 + random.nextInt(2000))
+                .setInterpolator(new DecelerateInterpolator())
+                .setListener(new AnimatorListenerAdapter() {
+                    @Override
+                    public void onAnimationEnd(Animator animation) {
+                        particle.animate()
+                                .alpha(0f)
+                                .scaleX(0f)
+                                .scaleY(0f)
+                                .setDuration(1000)
+                                .setListener(new AnimatorListenerAdapter() {
+                                    @Override
+                                    public void onAnimationEnd(Animator animation) {
+                                        particleContainer.removeView(particle);
+                                    }
+                                });
+                    }
+                });
     }
 
     private void applyUpgrade(Player p, String type) {

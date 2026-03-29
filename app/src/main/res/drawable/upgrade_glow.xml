@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Outer mega glow -->
+    <item>
+        <shape android:shape="oval">
+            <gradient
+                android:type="radial"
+                android:gradientRadius="50%p"
+                android:startColor="#CCFFD700"
+                android:centerColor="#44FFD700"
+                android:endColor="#00FFD700" />
+        </shape>
+    </item>
+    <!-- Inner explosion of light -->
+    <item android:top="10dp" android:bottom="10dp" android:left="10dp" android:right="10dp">
+        <shape android:shape="oval">
+            <gradient
+                android:type="radial"
+                android:gradientRadius="48%p"
+                android:startColor="#FFFFFFFF"
+                android:centerColor="#AAFFD700"
+                android:endColor="#00FFD700" />
+        </shape>
+    </item>
+</layer-list>
