@@ -209,14 +209,14 @@ public class MainActivity extends AppCompatActivity {
             players.add(new Player(0, gridSize / 2));
             players.add(new Player(gridSize - 1, gridSize / 2));
         } else if (numPlayers == 3) {
-            players.add(new Player(0, 0));
-            players.add(new Player(0, gridSize - 1));
-            players.add(new Player(gridSize - 1, gridSize / 2));
+            players.add(new Player(1, 1));
+            players.add(new Player(1, gridSize - 2));
+            players.add(new Player(gridSize - 2, gridSize / 2));
         } else {
-            players.add(new Player(0, 0));
-            players.add(new Player(0, gridSize - 1));
-            players.add(new Player(gridSize - 1, 0));
-            players.add(new Player(gridSize - 1, gridSize - 1));
+            players.add(new Player(1, 1));
+            players.add(new Player(1, gridSize - 2));
+            players.add(new Player(gridSize - 2, 1));
+            players.add(new Player(gridSize - 2, gridSize - 2));
         }
 
         monsters.clear();
