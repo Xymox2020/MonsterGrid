@@ -7,6 +7,7 @@ import android.animation.ValueAnimator;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
+import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
@@ -30,11 +31,11 @@ public class GridAnimationManager {
      * Animates a character moving from one cell to another.
      * Also animates the turn indicator in sync if it is currently visible.
      */
-    public static void animateStationaryToTarget(TextView sourceCell, TextView targetCell, String characterTag, int targetBgColor, float textSize, FrameLayout effectLayer, AnimationCallback callback) {
-        animateStationaryToTarget(sourceCell, targetCell, characterTag, targetBgColor, null, textSize, effectLayer, callback);
+    public static void animateStationaryToTarget(TextView sourceCell, TextView targetCell, String characterTag, int targetBgColor, float textSizePx, FrameLayout effectLayer, AnimationCallback callback) {
+        animateStationaryToTarget(sourceCell, targetCell, characterTag, targetBgColor, null, textSizePx, effectLayer, callback);
     }
 
-    public static void animateStationaryToTarget(TextView sourceCell, TextView targetCell, String characterTag, int targetBgColor, Drawable targetBgDrawable, float textSize, FrameLayout effectLayer, AnimationCallback callback) {
+    public static void animateStationaryToTarget(TextView sourceCell, TextView targetCell, String characterTag, int targetBgColor, Drawable targetBgDrawable, float textSizePx, FrameLayout effectLayer, AnimationCallback callback) {
         sourceCell.animate().cancel();
         sourceCell.setTranslationX(0);
         sourceCell.setTranslationY(0);
@@ -56,7 +57,7 @@ public class GridAnimationManager {
         float diffY = sourcePos[1] - targetPos[1];
 
         targetCell.setText(characterTag);
-        targetCell.setTextSize(textSize);
+        targetCell.setTextSize(TypedValue.COMPLEX_UNIT_PX, textSizePx);
         if (targetBgDrawable != null) {
             targetCell.setBackground(targetBgDrawable);
         } else {
@@ -155,7 +156,8 @@ public class GridAnimationManager {
             turnIndicatorView = new TextView(playerCell.getContext());
             turnIndicatorView.setText("▼");
             turnIndicatorView.setTextColor(Color.YELLOW);
-            turnIndicatorView.setTextSize(24);
+            float indicatorSize = playerCell.getContext().getResources().getDimension(R.dimen.text_size_indicator);
+            turnIndicatorView.setTextSize(TypedValue.COMPLEX_UNIT_PX, indicatorSize);
             turnIndicatorView.setGravity(Gravity.CENTER);
             turnIndicatorView.setShadowLayer(8, 0, 2, Color.BLACK);
             
@@ -307,7 +309,8 @@ public class GridAnimationManager {
         final TextView damageText = new TextView(targetCell.getContext());
         damageText.setText(text);
         damageText.setTextColor(color);
-        damageText.setTextSize(18);
+        float damageTextSize = targetCell.getContext().getResources().getDimension(R.dimen.text_size_damage);
+        damageText.setTextSize(TypedValue.COMPLEX_UNIT_PX, damageTextSize);
         damageText.setTypeface(Typeface.DEFAULT_BOLD);
         damageText.setShadowLayer(4, 2, 2, Color.BLACK);
         damageText.setGravity(Gravity.CENTER);

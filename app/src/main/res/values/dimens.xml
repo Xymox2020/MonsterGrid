@@ -1,0 +1,23 @@
+<resources>
+    <!-- Screen text sizes -->
+    <dimen name="text_size_status">22sp</dimen>
+    <dimen name="text_size_stats">13sp</dimen>
+    <dimen name="text_size_button">16sp</dimen>
+    <dimen name="text_size_log">15sp</dimen>
+    <dimen name="text_size_title">24sp</dimen>
+    <dimen name="text_size_large">28sp</dimen>
+    <dimen name="text_size_medium">20sp</dimen>
+    <dimen name="text_size_small">16sp</dimen>
+    <dimen name="text_size_level_up">20sp</dimen>
+
+    <!-- Grid text sizes -->
+    <dimen name="grid_text_p1_p2">10sp</dimen>
+    <dimen name="grid_text_p3_p4">8sp</dimen>
+    <dimen name="grid_text_monster_p1_p2">14sp</dimen>
+    <dimen name="grid_text_monster_p3_p4">10sp</dimen>
+    <dimen name="grid_text_collectable">18sp</dimen>
+
+    <!-- Animation text sizes -->
+    <dimen name="text_size_indicator">24sp</dimen>
+    <dimen name="text_size_damage">18sp</dimen>
+</resources>

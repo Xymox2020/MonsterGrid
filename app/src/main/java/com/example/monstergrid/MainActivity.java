@@ -9,6 +9,7 @@ import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
 import android.view.animation.AccelerateDecelerateInterpolator;
@@ -189,7 +190,7 @@ public class MainActivity extends AppCompatActivity {
                 cell.setLayoutParams(params);
                 cell.setBackgroundColor(Color.parseColor("#1A1A1A"));
                 cell.setGravity(Gravity.CENTER);
-                cell.setTextSize(numPlayers > 2 ? 8 : 10); 
+                cell.setTextSize(TypedValue.COMPLEX_UNIT_PX, getResources().getDimension(numPlayers > 2 ? R.dimen.grid_text_p3_p4 : R.dimen.grid_text_p1_p2)); 
                 cell.setTextColor(Color.WHITE);
                 cell.setIncludeFontPadding(false);
                 
@@ -397,7 +398,7 @@ public class MainActivity extends AppCompatActivity {
 
         GridAnimationManager.animateStationaryToTarget(cells[oldX][oldY], cells[tr][tc], tag, color, 
                 ContextCompat.getDrawable(this, getPlayerBackgroundResource(currentPlayerIndex)),
-                (numPlayers > 2 ? 8 : 10), effectLayer, () -> {
+                getResources().getDimension(numPlayers > 2 ? R.dimen.grid_text_p3_p4 : R.dimen.grid_text_p1_p2), effectLayer, () -> {
             p.hasMoved = true;
             isAnimating = false;
             
@@ -478,7 +479,7 @@ public class MainActivity extends AppCompatActivity {
                 if (p.canLevelUp()) showUpgradeOverlay(p);
             } else {
                 cells[r][c].setText("🐉\n" + m.hp);
-                cells[r][c].setTextSize(numPlayers > 2 ? 10 : 14);
+                cells[r][c].setTextSize(TypedValue.COMPLEX_UNIT_PX, getResources().getDimension(numPlayers > 2 ? R.dimen.grid_text_monster_p3_p4 : R.dimen.grid_text_monster_p1_p2));
             }
 
             isAnimating = false;
@@ -841,7 +842,8 @@ public class MainActivity extends AppCompatActivity {
             } else {
                 int oldX = m.x, oldY = m.y;
                 m.x = next[0]; m.y = next[1];
-                GridAnimationManager.animateStationaryToTarget(cells[oldX][oldY], cells[m.x][m.y], "🐉\n" + m.hp, Color.parseColor("#224422"), (numPlayers > 2 ? 10 : 14), effectLayer, () -> {
+                GridAnimationManager.animateStationaryToTarget(cells[oldX][oldY], cells[m.x][m.y], "🐉\n" + m.hp, Color.parseColor("#224422"), 
+                        getResources().getDimension(numPlayers > 2 ? R.dimen.grid_text_monster_p3_p4 : R.dimen.grid_text_monster_p1_p2), effectLayer, () -> {
                     processMonsterSequence(index + 1);
                 });
             }
@@ -906,7 +908,7 @@ public class MainActivity extends AppCompatActivity {
         // 1. Draw Collectables first (so they are at the bottom)
         for (Collectable c : collectables) {
             cells[c.x][c.y].setText(c.type == Collectable.TYPE_LOOT ? "🎁" : "🍓");
-            cells[c.x][c.y].setTextSize(18);
+            cells[c.x][c.y].setTextSize(TypedValue.COMPLEX_UNIT_PX, getResources().getDimension(R.dimen.grid_text_collectable));
         }
 
         // 2. Draw Obstacles
@@ -917,7 +919,7 @@ public class MainActivity extends AppCompatActivity {
 
         // 3. Draw Monsters (Dragons) above collectables
         for (Monster m : monsters) {
-            cells[m.x][m.y].setTextSize(numPlayers > 2 ? 10 : 14);
+            cells[m.x][m.y].setTextSize(TypedValue.COMPLEX_UNIT_PX, getResources().getDimension(numPlayers > 2 ? R.dimen.grid_text_monster_p3_p4 : R.dimen.grid_text_monster_p1_p2));
             cells[m.x][m.y].setText("🐉\n" + m.hp);
             cells[m.x][m.y].setBackgroundColor(Color.parseColor("#224422"));
         }
@@ -926,7 +928,7 @@ public class MainActivity extends AppCompatActivity {
         for (int i = 0; i < players.size(); i++) {
             Player p = players.get(i);
             if (p.hp > 0) {
-                cells[p.x][p.y].setTextSize(numPlayers > 2 ? 8 : 10);
+                cells[p.x][p.y].setTextSize(TypedValue.COMPLEX_UNIT_PX, getResources().getDimension(numPlayers > 2 ? R.dimen.grid_text_p3_p4 : R.dimen.grid_text_p1_p2));
                 cells[p.x][p.y].setText(getPlayerTag(i, p.hp));
                 cells[p.x][p.y].setBackgroundResource(getPlayerBackgroundResource(i));
             }

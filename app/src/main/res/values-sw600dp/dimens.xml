@@ -1,0 +1,22 @@
+<resources>
+    <dimen name="text_size_status">32sp</dimen>
+    <dimen name="text_size_stats">20sp</dimen>
+    <dimen name="text_size_button">24sp</dimen>
+    <dimen name="text_size_log">22sp</dimen>
+    <dimen name="text_size_title">36sp</dimen>
+    <dimen name="text_size_large">42sp</dimen>
+    <dimen name="text_size_medium">30sp</dimen>
+    <dimen name="text_size_small">24sp</dimen>
+    <dimen name="text_size_level_up">30sp</dimen>
+
+    <!-- Grid text sizes for tablets -->
+    <dimen name="grid_text_p1_p2">18sp</dimen>
+    <dimen name="grid_text_p3_p4">14sp</dimen>
+    <dimen name="grid_text_monster_p1_p2">24sp</dimen>
+    <dimen name="grid_text_monster_p3_p4">18sp</dimen>
+    <dimen name="grid_text_collectable">28sp</dimen>
+
+    <!-- Animation text sizes -->
+    <dimen name="text_size_indicator">36sp</dimen>
+    <dimen name="text_size_damage">28sp</dimen>
+</resources>

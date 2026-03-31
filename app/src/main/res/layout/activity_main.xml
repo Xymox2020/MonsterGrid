@@ -26,7 +26,7 @@
             android:layout_height="wrap_content"
             android:text="PLAYER 1 TURN"
             android:textColor="#FFD700"
-            android:textSize="22sp"
+            android:textSize="@dimen/text_size_status"
             android:fontFamily="serif"
             android:textStyle="bold"
             android:letterSpacing="0.1"
@@ -63,7 +63,7 @@
                     android:text="P1: 20 HP"
                     android:textColor="#E0E0E0"
                     android:fontFamily="serif"
-                    android:textSize="13sp"
+                    android:textSize="@dimen/text_size_stats"
                     android:textStyle="bold"/>
             </LinearLayout>
 
@@ -86,7 +86,7 @@
                     android:text="P2: 20 HP"
                     android:textColor="#E0E0E0"
                     android:fontFamily="serif"
-                    android:textSize="13sp"
+                    android:textSize="@dimen/text_size_stats"
                     android:textStyle="bold"/>
             </LinearLayout>
 
@@ -113,7 +113,7 @@
                     android:text="P3: 20 HP"
                     android:textColor="#E0E0E0"
                     android:fontFamily="serif"
-                    android:textSize="13sp"
+                    android:textSize="@dimen/text_size_stats"
                     android:textStyle="bold"/>
             </LinearLayout>
 
@@ -140,7 +140,7 @@
                     android:text="P4: 20 HP"
                     android:textColor="#E0E0E0"
                     android:fontFamily="serif"
-                    android:textSize="13sp"
+                    android:textSize="@dimen/text_size_stats"
                     android:textStyle="bold"/>
             </LinearLayout>
         </LinearLayout>
@@ -216,7 +216,8 @@
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="60dp"
+            android:layout_height="wrap_content"
+            android:minHeight="60dp"
             android:orientation="horizontal"
             android:gravity="center">
 
@@ -224,13 +225,14 @@
                 android:id="@+id/btnAction1"
                 style="@style/Widget.AppCompat.Button.Borderless"
                 android:layout_width="0dp"
-                android:layout_height="match_parent"
+                android:layout_height="wrap_content"
+                android:minHeight="60dp"
                 android:layout_weight="1"
                 android:text="MOVE"
                 android:textColor="#FFFFFF"
                 android:background="@drawable/fantasy_button_move"
                 android:layout_marginEnd="6dp"
-                android:textSize="16sp"
+                android:textSize="@dimen/text_size_button"
                 android:fontFamily="serif"
                 android:textStyle="bold"
                 android:shadowColor="#000000"
@@ -242,13 +244,14 @@
                 android:id="@+id/btnAction2"
                 style="@style/Widget.AppCompat.Button.Borderless"
                 android:layout_width="0dp"
-                android:layout_height="match_parent"
+                android:layout_height="wrap_content"
+                android:minHeight="60dp"
                 android:layout_weight="1"
                 android:text="ATTACK"
                 android:textColor="#FFFFFF"
                 android:background="@drawable/fantasy_button_attack"
                 android:layout_marginEnd="6dp"
-                android:textSize="16sp"
+                android:textSize="@dimen/text_size_button"
                 android:fontFamily="serif"
                 android:textStyle="bold"
                 android:shadowColor="#000000"
@@ -260,12 +263,13 @@
                 android:id="@+id/btnEndTurn"
                 style="@style/Widget.AppCompat.Button.Borderless"
                 android:layout_width="0dp"
-                android:layout_height="match_parent"
+                android:layout_height="wrap_content"
+                android:minHeight="60dp"
                 android:layout_weight="0.8"
                 android:text="END"
                 android:textColor="#FFFFFF"
                 android:background="@drawable/fantasy_button_gold"
-                android:textSize="16sp"
+                android:textSize="@dimen/text_size_button"
                 android:fontFamily="serif"
                 android:textStyle="bold"
                 android:shadowColor="#000000"
@@ -281,13 +285,13 @@
             android:layout_marginTop="8dp"
             android:text="Waiting for your command..."
             android:textColor="#BDB76B"
-            android:textSize="15sp"
+            android:textSize="@dimen/text_size_log"
             android:fontFamily="serif"
             android:textStyle="italic"
             android:gravity="center"/>
     </LinearLayout>
 
-    <!-- Player Selection Overlay (Sublime 100k Visuals) -->
+    <!-- Player Selection Overlay -->
     <FrameLayout
         android:id="@+id/selectionOverlay"
         android:layout_width="match_parent"
@@ -299,7 +303,8 @@
         android:focusable="true">
 
         <LinearLayout
-            android:layout_width="320dp"
+            android:layout_width="wrap_content"
+            android:minWidth="320dp"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:orientation="vertical"
@@ -311,7 +316,7 @@
                 android:layout_height="wrap_content"
                 android:text="SELECT WARRIORS"
                 android:textColor="#FFD700"
-                android:textSize="24sp"
+                android:textSize="@dimen/text_size_title"
                 android:fontFamily="serif"
                 android:textStyle="bold"
                 android:letterSpacing="0.1"
@@ -322,13 +327,13 @@
                 android:shadowRadius="2"
                 android:layout_marginBottom="32dp"/>
 
-            <Button android:id="@+id/btn2Players" style="@style/Widget.AppCompat.Button.Borderless" android:layout_width="match_parent" android:layout_height="60dp" android:text="2 WARRIORS" android:textColor="#FFFFFF" android:background="@drawable/fantasy_button_gold" android:layout_marginBottom="16dp" android:fontFamily="serif" android:textStyle="bold" android:textSize="16sp" android:shadowColor="#000000" android:shadowDx="1" android:shadowDy="1" android:shadowRadius="1"/>
-            <Button android:id="@+id/btn3Players" style="@style/Widget.AppCompat.Button.Borderless" android:layout_width="match_parent" android:layout_height="60dp" android:text="3 WARRIORS" android:textColor="#FFFFFF" android:background="@drawable/fantasy_button_gold" android:layout_marginBottom="16dp" android:fontFamily="serif" android:textStyle="bold" android:textSize="16sp" android:shadowColor="#000000" android:shadowDx="1" android:shadowDy="1" android:shadowRadius="1"/>
-            <Button android:id="@+id/btn4Players" style="@style/Widget.AppCompat.Button.Borderless" android:layout_width="match_parent" android:layout_height="60dp" android:text="4 WARRIORS" android:textColor="#FFFFFF" android:background="@drawable/fantasy_button_gold" android:fontFamily="serif" android:textStyle="bold" android:textSize="16sp" android:shadowColor="#000000" android:shadowDx="1" android:shadowDy="1" android:shadowRadius="1"/>
+            <Button android:id="@+id/btn2Players" style="@style/Widget.AppCompat.Button.Borderless" android:layout_width="match_parent" android:layout_height="wrap_content" android:minHeight="60dp" android:text="2 WARRIORS" android:textColor="#FFFFFF" android:background="@drawable/fantasy_button_gold" android:layout_marginBottom="16dp" android:fontFamily="serif" android:textStyle="bold" android:textSize="@dimen/text_size_button" android:shadowColor="#000000" android:shadowDx="1" android:shadowDy="1" android:shadowRadius="1"/>
+            <Button android:id="@+id/btn3Players" style="@style/Widget.AppCompat.Button.Borderless" android:layout_width="match_parent" android:layout_height="wrap_content" android:minHeight="60dp" android:text="3 WARRIORS" android:textColor="#FFFFFF" android:background="@drawable/fantasy_button_gold" android:layout_marginBottom="16dp" android:fontFamily="serif" android:textStyle="bold" android:textSize="@dimen/text_size_button" android:shadowColor="#000000" android:shadowDx="1" android:shadowDy="1" android:shadowRadius="1"/>
+            <Button android:id="@+id/btn4Players" style="@style/Widget.AppCompat.Button.Borderless" android:layout_width="match_parent" android:layout_height="wrap_content" android:minHeight="60dp" android:text="4 WARRIORS" android:textColor="#FFFFFF" android:background="@drawable/fantasy_button_gold" android:fontFamily="serif" android:textStyle="bold" android:textSize="@dimen/text_size_button" android:shadowColor="#000000" android:shadowDx="1" android:shadowDy="1" android:shadowRadius="1"/>
         </LinearLayout>
     </FrameLayout>
 
-    <!-- Upgrade Overlay (REVERTED texts and spacing) -->
+    <!-- Upgrade Overlay -->
     <FrameLayout
         android:id="@+id/upgradeOverlay"
         android:layout_width="match_parent"
@@ -359,7 +364,7 @@
                 android:layout_height="wrap_content"
                 android:text="LEVEL UP"
                 android:textColor="#FFD700"
-                android:textSize="20sp"
+                android:textSize="@dimen/text_size_medium"
                 android:fontFamily="sans-serif-condensed-light"
                 android:letterSpacing="0.3"
                 android:gravity="center"
@@ -370,7 +375,7 @@
                 android:layout_height="wrap_content"
                 android:text="Choose your upgrade"
                 android:textColor="#B0BEC5"
-                android:textSize="16sp"
+                android:textSize="@dimen/text_size_small"
                 android:fontFamily="serif"
                 android:textStyle="italic"
                 android:gravity="center"
@@ -448,7 +453,7 @@
                 android:layout_height="wrap_content"
                 android:text="VICTORIOUS"
                 android:textColor="#FFD700"
-                android:textSize="28sp"
+                android:textSize="@dimen/text_size_large"
                 android:fontFamily="serif"
                 android:textStyle="bold"
                 android:gravity="center"/>
@@ -458,7 +463,7 @@
                 android:layout_height="wrap_content"
                 android:text="Tap to play again"
                 android:textColor="#F5DEB3"
-                android:textSize="16sp"
+                android:textSize="@dimen/text_size_small"
                 android:fontFamily="serif"
                 android:textStyle="italic"
                 android:layout_marginTop="24dp"
