@@ -147,7 +147,7 @@ public class MainActivity extends AppCompatActivity {
         Player p = getCurrentPlayer();
         for (int i = 0; i < gridSize; i++) {
             for (int j = 0; j < gridSize; j++) {
-                if (GameRules.isValidPlayerMove(p.x, p.y, i, j, p.movementModifier) && (isEmpty(i, j) || isCollectableAt(i, j)) && isPathClear(p.x, p.y, i, j)) {
+                if (GameRules.isValidPlayerMove(p.x, p.y, i, j, p.movementModifier) && (isEmpty(i, j) || isCollectableAt(i, j)) && !isMonsterAt(i, j) && isPathClear(p.x, p.y, i, j)) {
                     cells[i][j].setBackgroundColor(Color.parseColor("#44AAFFAA"));
                 }
             }
@@ -355,7 +355,7 @@ public class MainActivity extends AppCompatActivity {
         if (isAnimating || upgradeOverlay.getVisibility() == View.VISIBLE || gameOverOverlay.getVisibility() == View.VISIBLE) return;
         Player p = getCurrentPlayer();
         if (isMoveMode && !p.hasMoved) {
-            if (GameRules.isValidPlayerMove(p.x, p.y, r, c, p.movementModifier) && (isEmpty(r, c) || isCollectableAt(r, c)) && isPathClear(p.x, p.y, r, c)) {
+            if (GameRules.isValidPlayerMove(p.x, p.y, r, c, p.movementModifier) && (isEmpty(r, c) || isCollectableAt(r, c)) && !isMonsterAt(r, c) && isPathClear(p.x, p.y, r, c)) {
                 animatePlayerMove(p, r, c);
             }
         } else if (isAttackMode && !p.hasAttacked) {
